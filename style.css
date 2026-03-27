@@ -120,19 +120,39 @@ header nav a:hover {
     color: #667eea;
 }
 
-/* Dashboard Section */
-.dashboard {
-    background-color: white;
+/* Welcome Section */
+.welcome {
     padding: 60px 0;
-}
-
-.dashboard h2 {
+    background: #ffffff;
     text-align: center;
-    font-size: 2rem;
-    margin-bottom: 3rem;
-    color: #1a1a1a;
 }
 
+.welcome h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.welcome p {
+    margin: 0 auto 1.5rem;
+    max-width: 720px;
+    color: #444;
+}
+
+.welcome-links {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.profile-img {
+    max-width: 160px;
+    border-radius: 8px;
+    border: 2px solid #ccc;
+}
+
+/* Dashboard Section -> removed */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));

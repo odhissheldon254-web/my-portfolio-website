@@ -1,89 +1,429 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sheldon Odhiambo - Portfolio</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sheldon Odhiambo | Gearbox Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0f0e;
+      --surface: #141716;
+      --border: #1f2421;
+      --text: #e8ede9;
+      --muted: #6b7a6d;
+      --accent: #4ade80;
+      --accent-dim: rgba(74, 222, 128, 0.08);
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-sans: 'IBM Plex Sans', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(13,15,14,0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      height: 54px;
+    }
+
+    .nav-logo {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--accent);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 0.04em;
+    }
+
+    .nav-logo span.bolt { font-size: 15px; }
+
+    .nav-links {
+      display: flex;
+      gap: 0;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+      transition: color 0.2s, background 0.2s;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    /* ── HERO ── */
+    .hero {
+      border-bottom: 1px solid var(--border);
+      padding: 5rem 2rem 4.5rem;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .hero-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hero-label::before {
+      content: '';
+      display: inline-block;
+      width: 20px;
+      height: 1px;
+      background: var(--accent);
+    }
+
+    h1 {
+      font-family: var(--font-sans);
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 300;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+
+    h1 strong {
+      font-weight: 600;
+    }
+
+    .hero-sub {
+      font-size: 15px;
+      color: var(--muted);
+      max-width: 480px;
+      margin-bottom: 2.2rem;
+      line-height: 1.7;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      text-decoration: none;
+      padding: 9px 20px;
+      border-radius: 5px;
+      border: 1px solid;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0d0f0e;
+      font-weight: 500;
+    }
+
+    .btn-primary:hover {
+      background: #6ef09a;
+      border-color: #6ef09a;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--muted);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    /* ── MAIN CONTENT ── */
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 3rem 2rem 5rem;
+    }
+
+    .section-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 1.6rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── DASHBOARD GRID ── */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 3.5rem;
+    }
+
+    .dash-card {
+      background: var(--surface);
+      padding: 1.6rem 1.4rem;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: background 0.2s;
+    }
+
+    .dash-card:hover {
+      background: #171c19;
+    }
+
+    .dash-icon {
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+
+    .dash-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .dash-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .dash-value {
+      font-family: var(--font-mono);
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--accent);
+      margin-top: 4px;
+    }
+
+    /* ── LINK CARDS ── */
+    .link-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+      margin-bottom: 3.5rem;
+    }
+
+    .link-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 1.4rem 1.5rem;
+      text-decoration: none;
+      color: var(--text);
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      transition: border-color 0.2s, background 0.2s, transform 0.15s;
+    }
+
+    .link-card:hover {
+      border-color: var(--accent);
+      background: #141a16;
+      transform: translateY(-2px);
+    }
+
+    .link-card-icon {
+      font-size: 22px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .link-card-body {}
+
+    .link-card-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+
+    .link-card-desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .link-card-arrow {
+      margin-left: auto;
+      font-size: 16px;
+      color: var(--muted);
+      flex-shrink: 0;
+      align-self: center;
+      transition: color 0.2s, transform 0.2s;
+    }
+
+    .link-card:hover .link-card-arrow {
+      color: var(--accent);
+      transform: translateX(3px);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 2rem;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+
+    @media (max-width: 600px) {
+      nav { padding: 0 1rem; }
+      .hero { padding: 3.5rem 1rem 3rem; }
+      main { padding: 2rem 1rem 4rem; }
+      .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
 </head>
 <body>
-    <!-- Header and Navigation -->
-    <header>
-        <div class="container">
-            <div class="logo">⚡ SO</div>
-            <nav>
-                <a href="index.html">Home</a>
-                <a href="about.html">About</a>
-                <a href="projects/index.html">Projects</a>
-                <a href="reports.html">Reports</a>
-            </nav>
-        </div>
-    </header>
 
-    <!-- Hero Section -->
-    <section id="home" class="hero">
-        <div class="container">
-            <h1>Sheldon Odhiambo</h1>
-            <p class="tagline">building my journey in embedded systems</p>
-            <div class="cta-buttons">
-                <a href="reports.html" class="btn btn-primary">📄 View Reports</a>
-                <a href="projects/index.html" class="btn btn-secondary">🔧 View Projects</a>
-            </div>
-        </div>
-    </section>
+  <!-- NAV -->
+  <nav>
+    <a href="index.html" class="nav-logo">
+      <span class="bolt">⚡</span> SO
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="reports.html">Reports</a></li>
+      <li><a href="projects/index.html">Projects</a></li>
+    </ul>
+  </nav>
 
-    <!-- Dashboard Section -->
-    <section id="dashboard" class="dashboard">
-        <div class="container">
-            <h2>DASHBOARD</h2>
-            <div class="dashboard-grid">
-                <div class="card">
-                    <span class="icon">📚</span>
-                    <h3>HOME</h3>
-                    <p>A quick overview of my progress so far</p>
-                </div>
-                <div class="card">
-                    <span class="icon">📝</span>
-                    <h3>REPORTS</h3>
-                    <p>Weekly assignment reports completed and uploaded</p>
-                </div>
-                <div class="card">
-                    <span class="icon">🔧</span>
-                    <h3>PROJECTS</h3>
-                    <p>Hands-on projects completed during the course</p>
-                </div>
-                <div class="card">
-                    <span class="icon">👤</span>
-                    <h3>ABOUT</h3>
-                    <p>Learn more about who I am and my background</p>
-                </div>
-            </div>
-        </div>
-    </section>
+  <!-- HERO -->
+  <header class="hero">
+    <p class="hero-label">Gearbox Academy — Embedded Systems Intro</p>
+    <h1><strong>Sheldon Odhiambo</strong></h1>
+    <p class="hero-sub">Tracking my embedded systems journey — weekly reports, projects, and progress all in one place.</p>
+    <div class="hero-actions">
+      <a href="reports.html" class="btn btn-primary">📄 View Reports</a>
+      <a href="projects/index.html" class="btn btn-outline">🔧 View Projects</a>
+    </div>
+  </header>
 
-    <!-- Weekly Reports Section (Placeholder) -->
-    <section id="weekly-reports" class="reports-overview">
-        <div class="container">
-            <h2>📋 WEEKLY REPORTS</h2>
-            <p>View all weekly assignment reports organized by week.</p>
-            <a href="reports.html" class="btn btn-primary">View All Reports</a>
-        </div>
-    </section>
+  <!-- MAIN -->
+  <main>
 
-    <!-- Course Projects Section (Placeholder) -->
-    <section id="course-projects" class="projects-overview">
-        <div class="container">
-            <h2>💡 COURSE PROJECTS</h2>
-            <p>Browse completed and upcoming course projects.</p>
-            <a href="projects/index.html" class="btn btn-primary">View All Projects</a>
-        </div>
-    </section>
+    <h2 class="section-title">Dashboard</h2>
 
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <p>&copy; 2026 Sheldon Odhiambo — learning,building and growing in technology</p>
+    <!-- Stat cards -->
+    <div class="dashboard-grid">
+      <div class="dash-card">
+        <div class="dash-icon">📚</div>
+        <div class="dash-label">Course Progress</div>
+        <div class="dash-title">Tracking weekly milestones through the curriculum</div>
+        <div class="dash-value">Week 1</div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-icon">📝</div>
+        <div class="dash-label">Reports Submitted</div>
+        <div class="dash-title">Weekly assignment reports completed and uploaded</div>
+        <div class="dash-value">0</div>
+      </div>
+      <div class="dash-card">
+        <div class="dash-icon">🔧</div>
+        <div class="dash-label">Projects Built</div>
+        <div class="dash-title">Hands-on projects completed during the course</div>
+        <div class="dash-value">0</div>
+      </div>
+    </div>
+
+    <h2 class="section-title">Explore</h2>
+
+    <!-- Link cards -->
+    <div class="link-cards">
+      <a href="about.html" class="link-card">
+        <div class="link-card-icon">👤</div>
+        <div class="link-card-body">
+          <div class="link-card-title">About Me</div>
+          <div class="link-card-desc">Learn more about who I am and my background</div>
         </div>
-    </footer>
+        <span class="link-card-arrow">→</span>
+      </a>
+      <a href="reports.html" class="link-card">
+        <div class="link-card-icon">📋</div>
+        <div class="link-card-body">
+          <div class="link-card-title">Weekly Reports</div>
+          <div class="link-card-desc">View all weekly assignment reports organized by week</div>
+        </div>
+        <span class="link-card-arrow">→</span>
+      </a>
+      <a href="projects/index.html" class="link-card">
+        <div class="link-card-icon">💡</div>
+        <div class="link-card-body">
+          <div class="link-card-title">Course Projects</div>
+          <div class="link-card-desc">Browse completed and upcoming course projects</div>
+        </div>
+        <span class="link-card-arrow">→</span>
+      </a>
+    </div>
+
+  </main>
+
+  <footer>
+    © 2026 Sheldon Odhiambo — Gearbox Academy Embedded Systems Intro
+  </footer>
+
 </body>
 </html>

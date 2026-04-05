@@ -1,65 +1,246 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About - Sheldon Odhiambo</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>About — Sheldon Odhiambo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0f0e;
+      --surface: #141716;
+      --border: #1f2421;
+      --text: #e8ede9;
+      --muted: #6b7a6d;
+      --accent: #4ade80;
+      --accent-dim: rgba(74, 222, 128, 0.08);
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-sans: 'IBM Plex Sans', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,15,14,0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 54px;
+    }
+    .nav-logo {
+      font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+      color: var(--accent); text-decoration: none;
+      display: flex; align-items: center; gap: 6px; letter-spacing: 0.04em;
+    }
+    .nav-links { display: flex; gap: 0; list-style: none; }
+    .nav-links a {
+      font-family: var(--font-mono); font-size: 12px; color: var(--muted);
+      text-decoration: none; padding: 6px 14px; border-radius: 4px;
+      letter-spacing: 0.05em; transition: color 0.2s, background 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: var(--accent); background: var(--accent-dim);
+    }
+
+    /* ── HERO ── */
+    .hero {
+      border-bottom: 1px solid var(--border);
+      padding: 4rem 2rem 3.5rem;
+      max-width: 860px; margin: 0 auto;
+    }
+    .hero-label {
+      font-family: var(--font-mono); font-size: 11px; color: var(--accent);
+      letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 1.4rem;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .hero-label::before {
+      content: ''; display: inline-block; width: 20px; height: 1px; background: var(--accent);
+    }
+    h1 {
+      font-family: var(--font-sans); font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 300; letter-spacing: -0.02em; line-height: 1.15;
+      margin-bottom: 0.6rem;
+    }
+    h1 strong { font-weight: 600; }
+    .hero-sub { font-size: 14px; color: var(--muted); }
+
+    /* ── MAIN ── */
+    main {
+      max-width: 860px; margin: 0 auto;
+      padding: 3rem 2rem 5rem;
+    }
+
+    /* ── PROFILE CARD ── */
+    .profile-wrap {
+      display: flex;
+      gap: 2.5rem;
+      align-items: flex-start;
+      margin-bottom: 3.5rem;
+      flex-wrap: wrap;
+    }
+    .profile-photo {
+      flex-shrink: 0;
+      width: 160px; height: 160px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .profile-photo img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .profile-bio {
+      flex: 1; min-width: 220px;
+    }
+    .profile-bio h2 {
+      font-size: 18px; font-weight: 600; margin-bottom: 0.6rem;
+    }
+    .profile-bio p {
+      font-size: 14px; color: var(--muted); line-height: 1.7;
+    }
+
+    /* ── SECTION ── */
+    .section-title {
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+      letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 1.4rem;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* ── SKILLS GRID ── */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 3.5rem;
+    }
+    .skill-block {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 7px; padding: 1.2rem 1.3rem;
+    }
+    .skill-block h3 {
+      font-family: var(--font-mono); font-size: 11px; color: var(--accent);
+      letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.9rem;
+    }
+    .skill-block ul { list-style: none; }
+    .skill-block ul li {
+      font-size: 13px; color: var(--muted); padding: 5px 0;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 7px;
+    }
+    .skill-block ul li:last-child { border-bottom: none; }
+    .skill-block ul li::before {
+      content: '▸'; color: var(--accent); font-size: 10px; flex-shrink: 0;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 2rem; text-align: center;
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: 0.04em;
+    }
+
+    @media (max-width: 600px) {
+      nav { padding: 0 1rem; }
+      .hero, main { padding-left: 1rem; padding-right: 1rem; }
+      .profile-photo { width: 120px; height: 120px; }
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <div class="logo">⚡ SO</div>
-            <nav>
-                <a href="index.html">Home</a>
-                <a href="about.html">About</a>
-                <a href="projects/index.html">Projects</a>
-                <a href="reports.html">Reports</a>
-            </nav>
-        </div>
-    </header>
 
-    <section class="about">
-        <div class="container">
-            <img src="About.jpg" alt="Sheldon Odhiambo" class="profile-img" style="max-width: 160px; border-radius: 8px; border: 3px solid #fff; margin-bottom: 16px;" />
-            <h2>About Me</h2>
-            <p>My name is <strong>Sheldon Odhiambo</strong>. I am studying Bachelor of Science in Microprocessor Technology and Instrumentation, and I am building a modern portfolio with clear structure and professional layout.</p>
+  <nav>
+    <a href="index.html" class="nav-logo"><span>⚡</span> SO</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html" class="active">About</a></li>
+      <li><a href="reports.html">Reports</a></li>
+      <li><a href="projects/index.html">Projects</a></li>
+    </ul>
+  </nav>
 
-            <h3>Course Overview</h3>
-            <p>Bachelor of Science in Microprocessor Technology and Instrumentation covers digital systems, microcontroller design, instrument calibration, signal processing, and embedded systems software development.</p>
+  <header class="hero">
+    <p class="hero-label">About Me</p>
+    <h1><strong>Sheldon Odhiambo</strong></h1>
+    <p class="hero-sub">BSc Microprocessor Technology & Instrumentation</p>
+  </header>
 
-            <h3>Skills</h3>
-            <ul>
-                <li>Embedded Systems Design</li>
-                <li>Microcontroller Programming</li>
-                <li>Digital System Design</li>
-                <li>Signal Processing</li>
-                <li>Web Development (HTML, CSS, JavaScript)</li>
-            </ul>
+  <main>
 
-            <h3>Tools & Platforms</h3>
-            <ul>
-                <li>VS Code</li>
-                <li>Git & GitHub</li>
-                <li>Arduino IDE</li>
-                <li>MPLAB X IDE</li>
-                <li>Proteus Simulation Software</li>
-            </ul>
+    <!-- Profile -->
+    <div class="profile-wrap">
+      <div class="profile-photo">
+        <img src="About.jpg" alt="Sheldon Odhiambo" />
+      </div>
+      <div class="profile-bio">
+        <h2>Sheldon Odhiambo</h2>
+        <p>
+          I am studying Bachelor of Science in Microprocessor Technology and Instrumentation,
+          and I am building a modern portfolio with clear structure and professional layout.
+        </p>
+        <br>
+        <p>
+          My coursework covers digital systems, microcontroller design, instrument calibration,
+          signal processing, and embedded systems software development.
+        </p>
+      </div>
+    </div>
 
-            <h3>Interests</h3>
-            <ul>
-                <li>Embedded Systems</li>
-                <li>Microprocessor Design</li>
-                <li>Instrumentation</li>
-                <li>Web Development & Interface Design</li>
-            </ul>
-        </div>
-    </section>
+    <!-- Skills -->
+    <h2 class="section-title">Skills & Tools</h2>
+    <div class="skills-grid">
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2026 Sheldon Odhiambo — learning,building and growing in technology</p>
-        </div>
-    </footer>
+      <div class="skill-block">
+        <h3>Programming</h3>
+        <ul>
+          <li>Rust</li>
+          <li>Python</li>
+          <li>C++</li>
+          <li>JavaScript</li>
+        </ul>
+      </div>
+
+      <div class="skill-block">
+        <h3>Tools & Platforms</h3>
+        <ul>
+          <li>VS Code</li>
+          <li>Git & GitHub</li>
+          <li>Arduino IDE</li>
+          <li>MPLAB X IDE</li>
+          <li>Proteus Simulation</li>
+        </ul>
+      </div>
+
+      <div class="skill-block">
+        <h3>Interests</h3>
+        <ul>
+          <li>Embedded Systems</li>
+          <li>Microprocessor Design</li>
+          <li>Instrumentation</li>
+          <li>Web Dev & UI Design</li>
+        </ul>
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer>
+    © 2026 Sheldon Odhiambo — Gearbox Academy Embedded Systems Intro
+  </footer>
+
 </body>
 </html>

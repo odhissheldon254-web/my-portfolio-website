@@ -1,53 +1,182 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Projects - Sheldon Odhiambo</title>
-    <link rel="stylesheet" href="../style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Projects — Sheldon Odhiambo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0f0e;
+      --surface: #141716;
+      --border: #1f2421;
+      --text: #e8ede9;
+      --muted: #6b7a6d;
+      --accent: #4ade80;
+      --accent-dim: rgba(74, 222, 128, 0.08);
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-sans: 'IBM Plex Sans', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: var(--font-sans); font-size: 15px; line-height: 1.6; min-height: 100vh;
+    }
+
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,15,14,0.92); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 54px;
+    }
+    .nav-logo {
+      font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+      color: var(--accent); text-decoration: none;
+      display: flex; align-items: center; gap: 6px; letter-spacing: 0.04em;
+    }
+    .nav-links { display: flex; gap: 0; list-style: none; }
+    .nav-links a {
+      font-family: var(--font-mono); font-size: 12px; color: var(--muted);
+      text-decoration: none; padding: 6px 14px; border-radius: 4px;
+      letter-spacing: 0.05em; transition: color 0.2s, background 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--accent); background: var(--accent-dim); }
+
+    .hero {
+      border-bottom: 1px solid var(--border);
+      padding: 4rem 2rem 3.5rem; max-width: 860px; margin: 0 auto;
+    }
+    .hero-label {
+      font-family: var(--font-mono); font-size: 11px; color: var(--accent);
+      letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 1.4rem;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .hero-label::before { content: ''; display: inline-block; width: 20px; height: 1px; background: var(--accent); }
+    h1 {
+      font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 300;
+      letter-spacing: -0.02em; margin-bottom: 0.5rem;
+    }
+    h1 strong { font-weight: 600; }
+    .hero-sub { font-size: 14px; color: var(--muted); }
+
+    main { max-width: 860px; margin: 0 auto; padding: 3rem 2rem 5rem; }
+
+    .section-title {
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+      letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 1.6rem;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* ── PROJECT CARDS ── */
+    .project-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+    }
+
+    .project-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 1.6rem 1.5rem;
+      text-decoration: none; color: var(--text);
+      display: flex; flex-direction: column; gap: 10px;
+      transition: border-color 0.2s, background 0.2s, transform 0.15s;
+    }
+    .project-card:hover {
+      border-color: var(--accent); background: #141a16; transform: translateY(-3px);
+    }
+    .project-num {
+      font-family: var(--font-mono); font-size: 11px; color: var(--accent);
+      letter-spacing: 0.1em;
+    }
+    .project-title {
+      font-size: 14px; font-weight: 600; line-height: 1.4;
+    }
+    .project-desc {
+      font-size: 13px; color: var(--muted); line-height: 1.6; flex: 1;
+    }
+    .project-link {
+      font-family: var(--font-mono); font-size: 11px; color: var(--accent);
+      display: flex; align-items: center; gap: 5px; margin-top: 4px;
+      letter-spacing: 0.04em; transition: gap 0.2s;
+    }
+    .project-card:hover .project-link { gap: 8px; }
+
+    footer {
+      border-top: 1px solid var(--border); padding: 1.5rem 2rem; text-align: center;
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: 0.04em;
+    }
+
+    @media (max-width: 600px) {
+      nav { padding: 0 1rem; }
+      .hero, main { padding-left: 1rem; padding-right: 1rem; }
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <div class="logo">⚡ SO</div>
-            <nav>
-                <a href="../index.html">Home</a>
-                <a href="../about.html">About</a>
-                <a href="index.html">Projects</a>
-                <a href="../reports.html">Reports</a>
-            </nav>
-        </div>
-    </header>
 
-    <section class="projects">
-        <div class="container">
-            <h2>💡 COURSE PROJECTS</h2>
-            <p>Browse completed and upcoming course projects, showcasing my hands-on experience in embedded systems.</p>
-            <div class="project-grid">
-                <div class="project-item">
-                    <h3><a href="project1.html">Smart Home Automation System</a></h3>
-                    <p>Designed and implemented an embedded system for controlling home appliances using a microcontroller and various sensors.</p>
-                </div>
-                <div class="project-item">
-                    <h3><a href="project2.html">Portable Environmental Monitoring Device</a></h3>
-                    <p>Developed a compact device to monitor temperature, humidity, and air quality, transmitting data wirelessly to a mobile application.</p>
-                </div>
-                <div class="project-item">
-                    <h3><a href="project3.html">Robotic Arm Control using ESP32</a></h3>
-                    <p>Built a robotic arm prototype controlled via a web interface, demonstrating precise motor control and sensor integration.</p>
-                </div>
-                <div class="project-item">
-                    <h3><a href="project4.html">Automated Plant Watering System</a></h3>
-                    <p>An IoT-enabled system that monitors soil moisture and automatically waters plants, with remote notifications and manual override capabilities.</p>
-                </div>
-            </div>
-        </div>
-    </section>
+  <nav>
+    <a href="../index.html" class="nav-logo"><span>⚡</span> SO</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../about.html">About</a></li>
+      <li><a href="../reports.html">Reports</a></li>
+      <li><a href="../projects/index.html" class="active">Projects</a></li>
+    </ul>
+  </nav>
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2026 Sheldon Odhiambo — learning,building and growing in technology</p>
-        </div>
-    </footer>
+  <header class="hero">
+    <p class="hero-label">Course Projects</p>
+    <h1><strong>💡 Projects</strong></h1>
+    <p class="hero-sub">Hands-on embedded systems projects, completed during the course.</p>
+  </header>
+
+  <main>
+
+    <h2 class="section-title">All Projects</h2>
+
+    <div class="project-grid">
+
+      <a href="project1.html" class="project-card">
+        <span class="project-num">PROJECT 01</span>
+        <div class="project-title">Smart Home Automation System</div>
+        <p class="project-desc">Designed and implemented an embedded system for controlling home appliances using a microcontroller and various sensors.</p>
+        <span class="project-link">View project →</span>
+      </a>
+
+      <a href="project2.html" class="project-card">
+        <span class="project-num">PROJECT 02</span>
+        <div class="project-title">Portable Environmental Monitoring Device</div>
+        <p class="project-desc">Developed a compact device to monitor temperature, humidity, and air quality, transmitting data wirelessly to a mobile application.</p>
+        <span class="project-link">View project →</span>
+      </a>
+
+      <a href="project3.html" class="project-card">
+        <span class="project-num">PROJECT 03</span>
+        <div class="project-title">Robotic Arm Control using ESP32</div>
+        <p class="project-desc">Built a robotic arm prototype controlled via a web interface, demonstrating precise motor control and sensor integration.</p>
+        <span class="project-link">View project →</span>
+      </a>
+
+      <a href="project4.html" class="project-card">
+        <span class="project-num">PROJECT 04</span>
+        <div class="project-title">Automated Plant Watering System</div>
+        <p class="project-desc">An IoT-enabled system that monitors soil moisture and automatically waters plants, with remote notifications and manual override capabilities.</p>
+        <span class="project-link">View project →</span>
+      </a>
+
+    </div>
+
+  </main>
+
+  <footer>
+    © 2026 Sheldon Odhiambo — Gearbox Academy Embedded Systems Intro
+  </footer>
+
 </body>
 </html>

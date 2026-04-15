@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Week 2 Report — Sheldon Odhiambo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f0e;
+      --surface: #141716;
+      --border: #1f2421;
+      --text: #e8ede9;
+      --muted: #6b7a6d;
+      --accent: #4ade80;
+      --accent-dim: rgba(74, 222, 128, 0.08);
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-sans: 'IBM Plex Sans', sans-serif;
+    }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: var(--font-sans); font-size: 15px; line-height: 1.6;
+    }
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,15,14,0.92); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 54px;
+    }
+    .nav-logo {
+      font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+      color: var(--accent); text-decoration: none;
+      display: flex; align-items: center; gap: 6px; letter-spacing: 0.04em;
+    }
+    .nav-links { display: flex; gap: 0; list-style: none; }
+    .nav-links a {
+      font-family: var(--font-mono); font-size: 12px; color: var(--muted);
+      text-decoration: none; padding: 6px 14px; border-radius: 4px;
+    }
+    .nav-links a:hover { color: var(--accent); background: var(--accent-dim); }
+    
+    main { max-width: 800px; margin: 0 auto; padding: 4rem 2rem; }
+    .meta { font-family: var(--font-mono); font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 1rem; }
+    h1 { font-size: 2.5rem; font-weight: 600; margin-bottom: 1.5rem; letter-spacing: -0.02em; }
+    h2 { font-size: 1.25rem; font-weight: 600; margin: 2.5rem 0 1rem; color: var(--accent); display: flex; align-items: center; gap: 10px; }
+    h2::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    p { margin-bottom: 1.2rem; color: #b0b8b2; }
+    ul { margin-bottom: 1.5rem; padding-left: 1.2rem; list-style: none; }
+    li { margin-bottom: 0.5rem; position: relative; color: #b0b8b2; }
+    li::before { content: '→'; position: absolute; left: -1.2rem; color: var(--accent); font-family: var(--font-mono); }
+    
+    .code-block {
+      background: #080a09; border: 1px solid var(--border); border-radius: 8px;
+      padding: 1.5rem; margin: 2rem 0; overflow-x: auto;
+      font-family: var(--font-mono); font-size: 13px; color: #d1d9d2; line-height: 1.5;
+    }
+    .keyword { color: #f472b6; }
+    .type { color: #34d399; }
+    .comment { color: #4b5563; }
+    .fn { color: #60a5fa; }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--muted); text-decoration: none; font-family: var(--font-mono);
+      font-size: 12px; margin-top: 3rem; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+
+    footer {
+      border-top: 1px solid var(--border); padding: 2rem; text-align: center;
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../index.html" class="nav-logo"><span>⚡</span> SO</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../about.html">About</a></li>
+      <li><a href="../reports.html">Reports</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="meta">Week 02 — Foundations</div>
+    <h1>Hardware & Software Integration: C Programming</h1>
+    
+    <p>
+      The second week of the program was dedicated to mastering C programming, the "mother language" of embedded systems. 
+      While Python is great for prototyping, C provides the low-level control and efficiency required for real-time instrument development.
+    </p>
+
+    <h2>Learning Objectives</h2>
+    <ul>
+      <li>Fundamentals of C Syntax and Logic.</li>
+      <li>Advanced Data Structures: Structs and Unions.</li>
+      <li>Dynamic Memory Management using <code>malloc</code> and <code>free</code>.</li>
+      <li>Understanding Memory Layout (Stack vs Heap).</li>
+    </ul>
+
+    <h2>Deep Dive: Memory Management</h2>
+    <p>
+      Unlike high-level languages with garbage collection, C requires the developer to manually manage memory. 
+      We explored how <code>malloc</code> allocates chunks of memory on the heap and why it is critical to use <code>free</code>
+      to prevent memory leaks—a common cause of failure in long-running embedded systems.
+    </p>
+    <p>
+      We also studied the difference between <strong>Structs</strong> (where members have their own memory) and 
+      <strong>Unions</strong> (where members share the same memory), which is essential for memory-constrained microcontrollers.
+    </p>
+
+    <h2>Assignment: Student Management System</h2>
+    <p>
+      This project demonstrates the use of dynamic memory allocation and complex data structures. 
+      It allows for flexible data storage for students with different academic profiles.
+    </p>
+
+    <div class="code-block">
+<span class="comment">// Student Management System in C</span>
+<span class="keyword">#include</span> &lt;stdio.h&gt;
+<span class="keyword">#include</span> &lt;stdlib.h&gt;
+<span class="keyword">#include</span> &lt;string.h&gt;
+
+<span class="keyword">typedef enum</span> { UNDERGRAD, POSTGRAD } <span class="type">Level</span>;
+
+<span class="keyword">typedef union</span> {
+    <span class="type">float</span> cgpa;
+    <span class="type">char</span> thesis[100];
+} <span class="type">AcademicData</span>;
+
+<span class="keyword">typedef struct</span> {
+    <span class="type">char</span> name[50];
+    <span class="type">int</span> age;
+    <span class="type">Level</span> level;
+    <span class="type">AcademicData</span> data;
+} <span class="type">Student</span>;
+
+<span class="type">int</span> <span class="fn">main</span>() {
+    <span class="type">int</span> n;
+    <span class="fn">printf</span>(<span class="string">"Enter number of students: "</span>);
+    <span class="fn">scanf</span>(<span class="string">"%d"</span>, &amp;n);
+
+    <span class="type">Student</span> *list = (<span class="type">Student</span> *)<span class="fn">malloc</span>(n * <span class="keyword">sizeof</span>(<span class="type">Student</span>));
+    <span class="keyword">if</span> (!list) <span class="keyword">return</span> <span class="string">1</span>;
+
+    <span class="comment">// Data Entry Logic...</span>
+    <span class="keyword">for</span>(<span class="type">int</span> i=0; i&lt;n; i++) {
+        <span class="fn">printf</span>(<span class="string">"\nStudent %d Name: "</span>, i+1);
+        <span class="fn">scanf</span>(<span class="string">"%s"</span>, list[i].name);
+        <span class="comment">// ... entries for age and level ...</span>
+    }
+
+    <span class="comment">// Displaying results...</span>
+    <span class="fn">printf</span>(<span class="string">"\n--- Registry Data ---\n"</span>);
+    <span class="comment">// ... print logic ...</span>
+
+    <span class="fn">free</span>(list);
+    <span class="keyword">return</span> <span class="string">0</span>;
+}
+    </div>
+
+    <a href="../reports.html" class="back-link">← Back to Reports</a>
+  </main>
+
+  <footer>
+    © 2026 Sheldon Odhiambo — Gearbox Academy
+  </footer>
+</body>
+</html>

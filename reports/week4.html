@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Week 4 Report — Sheldon Odhiambo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f0e;
+      --surface: #141716;
+      --border: #1f2421;
+      --text: #e8ede9;
+      --muted: #6b7a6d;
+      --accent: #4ade80;
+      --accent-dim: rgba(74, 222, 128, 0.08);
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-sans: 'IBM Plex Sans', sans-serif;
+    }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: var(--font-sans); font-size: 15px; line-height: 1.6;
+    }
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,15,14,0.92); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 54px;
+    }
+    .nav-logo {
+      font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+      color: var(--accent); text-decoration: none;
+      display: flex; align-items: center; gap: 6px; letter-spacing: 0.04em;
+    }
+    .nav-links { display: flex; gap: 0; list-style: none; }
+    .nav-links a {
+      font-family: var(--font-mono); font-size: 12px; color: var(--muted);
+      text-decoration: none; padding: 6px 14px; border-radius: 4px;
+    }
+    .nav-links a:hover { color: var(--accent); background: var(--accent-dim); }
+    
+    main { max-width: 800px; margin: 0 auto; padding: 4rem 2rem; }
+    .meta { font-family: var(--font-mono); font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 1rem; }
+    h1 { font-size: 2.5rem; font-weight: 600; margin-bottom: 1.5rem; letter-spacing: -0.02em; }
+    h2 { font-size: 1.25rem; font-weight: 600; margin: 2.5rem 0 1rem; color: var(--accent); display: flex; align-items: center; gap: 10px; }
+    h2::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    p { margin-bottom: 1.2rem; color: #b0b8b2; }
+    ul { margin-bottom: 1.5rem; padding-left: 1.2rem; list-style: none; }
+    li { margin-bottom: 0.5rem; position: relative; color: #b0b8b2; }
+    li::before { content: '→'; position: absolute; left: -1.2rem; color: var(--accent); font-family: var(--font-mono); }
+    
+    .code-block {
+      background: #080a09; border: 1px solid var(--border); border-radius: 8px;
+      padding: 1.5rem; margin: 2rem 0; overflow-x: auto;
+      font-family: var(--font-mono); font-size: 13px; color: #d1d9d2; line-height: 1.5;
+    }
+    .keyword { color: #f472b6; }
+    .type { color: #34d399; }
+    .comment { color: #4b5563; }
+    .fn { color: #60a5fa; }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--muted); text-decoration: none; font-family: var(--font-mono);
+      font-size: 12px; margin-top: 3rem; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+
+    footer {
+      border-top: 1px solid var(--border); padding: 2rem; text-align: center;
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../index.html" class="nav-logo"><span>⚡</span> SO</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../about.html">About</a></li>
+      <li><a href="../reports.html">Reports</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="meta">Week 04 — Asynchronous Logic</div>
+    <h1>Interrupts and Timers</h1>
+    
+    <p>
+      In Week 4, we moved beyond basic sequential execution by diving into hardware interrupts and timers. 
+      Relying on empty <code>delay()</code> functions wastes CPU cycles; interrupts allow an embedded system to react instantly to external events while performing other critical background work.
+    </p>
+
+    <h2>Learning Objectives</h2>
+    <ul>
+      <li>Understanding Interrupt Service Routines (ISRs).</li>
+      <li>Configuring Hardware Timers (Timer0, Timer1 on AVR).</li>
+      <li>Debouncing switches using timer-based logic instead of delays.</li>
+      <li>Best practices for volatile variables and ISR speed optimization.</li>
+    </ul>
+
+    <h2>Key Insights</h2>
+    <p>
+      One major takeaway was learning that an ISR must execute as quickly as possible. Performing heavy math or operations like serial printing inside an ISR can cause the microcontroller to crash or miss other critical timing events. We explored how to use flags to signal the main loop to perform the heavy lifting.
+    </p>
+
+    <div class="code-block">
+<span class="comment">// Example: Hardware Interrupt with Flag Logic</span>
+<span class="type">const int</span> interruptPin = <span class="string">2</span>;
+<span class="type">volatile bool</span> eventTriggered = <span class="keyword">false</span>;
+
+<span class="keyword">void</span> <span class="fn">setup</span>() {
+  <span class="fn">Serial</span>.<span class="fn">begin</span>(9600);
+  <span class="fn">pinMode</span>(interruptPin, <span class="keyword">INPUT_PULLUP</span>);
+  <span class="fn">attachInterrupt</span>(<span class="fn">digitalPinToInterrupt</span>(interruptPin), handleEvent, <span class="keyword">FALLING</span>);
+}
+
+<span class="keyword">void</span> <span class="fn">loop</span>() {
+  <span class="keyword">if</span> (eventTriggered) {
+    <span class="fn">Serial</span>.<span class="fn">println</span>(<span class="string">"Interrupt detected! Processing..."</span>);
+    <span class="comment">// Reset flag</span>
+    eventTriggered = <span class="keyword">false</span>;
+  }
+}
+
+<span class="comment">// This ISR runs incredibly fast</span>
+<span class="keyword">void</span> handleEvent() {
+  eventTriggered = <span class="keyword">true</span>;
+}
+    </div>
+
+    <a href="../reports.html" class="back-link">← Back to Reports</a>
+  </main>
+
+  <footer>
+    © 2026 Sheldon Odhiambo — Gearbox Academy
+  </footer>
+</body>
+</html>

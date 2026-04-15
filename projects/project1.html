@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Project 1: Pushbutton & LED Simulation — Sheldon Odhiambo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f0e;
+      --surface: #141716;
+      --border: #1f2421;
+      --text: #e8ede9;
+      --muted: #6b7a6d;
+      --accent: #4ade80;
+      --accent-dim: rgba(74, 222, 128, 0.08);
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-sans: 'IBM Plex Sans', sans-serif;
+    }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: var(--font-sans); font-size: 15px; line-height: 1.6;
+    }
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,15,14,0.92); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 54px;
+    }
+    .nav-logo {
+      font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+      color: var(--accent); text-decoration: none;
+      display: flex; align-items: center; gap: 6px; letter-spacing: 0.04em;
+    }
+    .nav-links { display: flex; gap: 0; list-style: none; }
+    .nav-links a {
+      font-family: var(--font-mono); font-size: 12px; color: var(--muted);
+      text-decoration: none; padding: 6px 14px; border-radius: 4px;
+    }
+    .nav-links a:hover { color: var(--accent); background: var(--accent-dim); }
+    
+    main { max-width: 800px; margin: 0 auto; padding: 4rem 2rem; }
+    .meta { font-family: var(--font-mono); font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 1rem; }
+    h1 { font-size: 2.5rem; font-weight: 600; margin-bottom: 1.5rem; letter-spacing: -0.02em; }
+    h2 { font-size: 1.25rem; font-weight: 600; margin: 2.5rem 0 1rem; color: var(--accent); display: flex; align-items: center; gap: 10px; }
+    h2::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    p { margin-bottom: 1.2rem; color: #b0b8b2; }
+    ul { margin-bottom: 1.5rem; padding-left: 1.2rem; list-style: none; }
+    li { margin-bottom: 0.5rem; position: relative; color: #b0b8b2; }
+    li::before { content: '→'; position: absolute; left: -1.2rem; color: var(--accent); font-family: var(--font-mono); }
+    
+    .sim-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: 1.5rem; margin: 2rem 0; display: flex; flex-direction: column; gap: 1rem;
+    }
+    .sim-header { display: flex; justify-content: space-between; align-items: center; }
+    .sim-title { font-weight: 600; font-size: 14px; color: var(--text); }
+    .sim-link { color: var(--accent); text-decoration: none; font-family: var(--font-mono); font-size: 12px; }
+    .sim-link:hover { text-decoration: underline; }
+
+    .code-block {
+      background: #080a09; border: 1px solid var(--border); border-radius: 8px;
+      padding: 1.5rem; margin: 2rem 0; overflow-x: auto;
+      font-family: var(--font-mono); font-size: 13px; color: #d1d9d2; line-height: 1.5;
+    }
+    .keyword { color: #f472b6; }
+    .type { color: #34d399; }
+    .comment { color: #4b5563; }
+    .fn { color: #60a5fa; }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--muted); text-decoration: none; font-family: var(--font-mono);
+      font-size: 12px; margin-top: 3rem; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+
+    footer {
+      border-top: 1px solid var(--border); padding: 2rem; text-align: center;
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../index.html" class="nav-logo"><span>⚡</span> SO</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../about.html">About</a></li>
+      <li><a href="../reports.html">Reports</a></li>
+      <li><a href="index.html">Projects</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="meta">Project 01 — Hardware Simulation</div>
+    <h1>Pushbutton & LED Logic Control</h1>
+    
+    <p>
+      This project demonstrates my ability to map real-world input to hardware output utilizing both the Arduino Uno R3 and the Raspberry Pi Pico. 
+      It serves as the first hands-on application of the theories learned during Week 3 of the Embedded Systems course.
+    </p>
+
+    <h2>Project Overview</h2>
+    <p>
+      The goal was to create a circuit where an LED is toggled on and off by a physical pushbutton. 
+      Because physical buttons can 'bounce'—causing multiple false signals for a single press—it was critical to implement debouncing logic in the firmware.
+    </p>
+
+    <h2>Live Simulations</h2>
+    <p>
+      Working with physical hardware during development can lead to rapid burnout of components. 
+      I utilized virtual simulation spaces to debug the circuitry before committing to solder.
+    </p>
+
+    <div style="margin: 2rem 0; text-align: center;">
+      <img src="arduino_led_sim.png" alt="Arduino Uno LED Breadboard Simulation" style="max-width: 100%; border-radius: 8px; border: 1px solid var(--border);" />
+    </div>
+
+    <div class="sim-card">
+        <div class="sim-header">
+            <span class="sim-title">Tinkercad: Arduino Uno Layout</span>
+            <a href="https://www.tinkercad.com/things/aeVGRikrNQL-seleste-ledamppushbutton-on-uno-r3" class="sim-link" target="_blank">View Simulation ↗</a>
+        </div>
+        <p style="font-size: 13px; margin: 0;">This schematic visually routes the 5V line through the tactile switch and utilizes a pulldown resistor to maintain a clear LOW state when unpressed.</p>
+    </div>
+
+    <div class="sim-card">
+        <div class="sim-header">
+            <span class="sim-title">Wokwi: Advanced Environment</span>
+            <a href="https://wokwi.com/projects/459287449685712897" class="sim-link" target="_blank">View Simulation ↗</a>
+        </div>
+        <p style="font-size: 13px; margin: 0;">Tested alternative microcontroller architectures and C-based debouncing algorithms in this lightweight environment.</p>
+    </div>
+    
+    <h2>Core Logic</h2>
+    <p>
+      The firmware revolves around constantly polling the GPIO pin connected to the switch, verifying its state, and then outputting a HIGH or LOW signal to the LED pin.
+    </p>
+    
+    <div class="code-block">
+<span class="comment">// Basic LED Toggle Logic</span>
+<span class="type">const int</span> buttonPin = <span class="string">2</span>;
+<span class="type">const int</span> ledPin = <span class="string">13</span>;
+
+<span class="type">int</span> buttonState = <span class="string">0</span>;
+
+<span class="keyword">void</span> <span class="fn">setup</span>() {
+  <span class="fn">pinMode</span>(ledPin, <span class="keyword">OUTPUT</span>);
+  <span class="fn">pinMode</span>(buttonPin, <span class="keyword">INPUT</span>);
+}
+
+<span class="keyword">void</span> <span class="fn">loop</span>() {
+  buttonState = <span class="fn">digitalRead</span>(buttonPin);
+  
+  <span class="keyword">if</span> (buttonState == <span class="keyword">HIGH</span>) {
+    <span class="fn">digitalWrite</span>(ledPin, <span class="keyword">HIGH</span>);
+  } <span class="keyword">else</span> {
+    <span class="fn">digitalWrite</span>(ledPin, <span class="keyword">LOW</span>);
+  }
+}
+    </div>
+
+    <a href="index.html" class="back-link">← Back to Projects</a>
+  </main>
+
+  <footer>
+    © 2026 Sheldon Odhiambo — Gearbox Academy
+  </footer>
+</body>
+</html>

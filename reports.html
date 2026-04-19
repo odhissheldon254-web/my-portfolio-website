@@ -73,6 +73,34 @@
     }
     .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
+    .roadmap {
+      display: grid;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 3rem;
+    }
+    .roadmap-row {
+      display: grid;
+      grid-template-columns: 72px 1fr 110px;
+      gap: 12px;
+      background: var(--surface);
+      padding: 0.9rem 1rem;
+      align-items: center;
+    }
+    .roadmap-week,
+    .roadmap-status {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .roadmap-week { color: var(--accent); }
+    .roadmap-topic { font-size: 13px; color: var(--text); }
+    .roadmap-status { color: var(--muted); text-align: right; }
+
     /* ── REPORT LIST ── */
     .report-group { margin-bottom: 3rem; }
 
@@ -87,6 +115,13 @@
     }
     .report-item:hover {
       border-color: var(--accent); background: #141a16;
+    }
+    .report-item-disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+    .report-item-disabled:hover {
+      border-color: var(--border); background: var(--surface);
     }
     .report-week {
       font-family: var(--font-mono); font-size: 11px; color: var(--accent);
@@ -130,6 +165,50 @@
 
   <main>
 
+    <h2 class="section-title">Weekly Roadmap</h2>
+    <div class="roadmap">
+      <div class="roadmap-row">
+        <span class="roadmap-week">Wk 01</span>
+        <span class="roadmap-topic">Introduction to Embedded Systems, HTML/CSS setup, Python area calculator</span>
+        <span class="roadmap-status">Done</span>
+      </div>
+      <div class="roadmap-row">
+        <span class="roadmap-week">Wk 02</span>
+        <span class="roadmap-topic">Introduction to C programming, structs, unions, and dynamic memory allocation</span>
+        <span class="roadmap-status">Done</span>
+      </div>
+      <div class="roadmap-row">
+        <span class="roadmap-week">Wk 03</span>
+        <span class="roadmap-topic">Microcontroller programming, Tinkercad/Wokwi simulation, pushbutton and LED logic</span>
+        <span class="roadmap-status">Done</span>
+      </div>
+      <div class="roadmap-row">
+        <span class="roadmap-week">Wk 04</span>
+        <span class="roadmap-topic">Raspberry Pi Pico programming, sensor integration, interrupts, UART, SPI, and I2C</span>
+        <span class="roadmap-status">Done</span>
+      </div>
+      <div class="roadmap-row">
+        <span class="roadmap-week">Wk 05</span>
+        <span class="roadmap-topic">Advanced Pico programming, sensors, LCD displays, and debounce practice</span>
+        <span class="roadmap-status">Done</span>
+      </div>
+      <div class="roadmap-row">
+        <span class="roadmap-week">Wk 06</span>
+        <span class="roadmap-topic">Communication protocols, ESP32 introduction, ESP-IDF setup, and Arduino ESP32 board package</span>
+        <span class="roadmap-status">Done</span>
+      </div>
+      <div class="roadmap-row">
+        <span class="roadmap-week">Wk 07</span>
+        <span class="roadmap-topic">Pico W personal web server using CircuitPython, Wi-Fi, HTML, CSS, and images</span>
+        <span class="roadmap-status">Done</span>
+      </div>
+      <div class="roadmap-row">
+        <span class="roadmap-week">Wk 08-12</span>
+        <span class="roadmap-topic">Pending course material or assignment links before writing final pages</span>
+        <span class="roadmap-status">Waiting</span>
+      </div>
+    </div>
+
     <!-- Semester 1 -->
     <div class="report-group">
       <h2 class="section-title">Semester 1</h2>
@@ -141,7 +220,7 @@
         </a>
         <a href="reports/week2.html" class="report-item">
           <span class="report-week">Wk 02</span>
-          <span class="report-title">Hardware & Software Integration</span>
+          <span class="report-title">Introduction to C Programming</span>
           <span class="report-arrow">→</span>
         </a>
         <a href="reports/week3.html" class="report-item">
@@ -151,17 +230,17 @@
         </a>
         <a href="reports/week4.html" class="report-item">
           <span class="report-week">Wk 04</span>
-          <span class="report-title">Interrupts and Timers</span>
+          <span class="report-title">Raspberry Pi Pico Programming and Sensor Integration</span>
           <span class="report-arrow">→</span>
         </a>
         <a href="reports/week5.html" class="report-item">
           <span class="report-week">Wk 05</span>
-          <span class="report-title">Analog to Digital Conversion (ADC)</span>
+          <span class="report-title">Advanced Pico Programming, Sensors, and LCD Displays</span>
           <span class="report-arrow">→</span>
         </a>
-        <a href="reports/report6.html" class="report-item">
+        <a href="reports/week6.html" class="report-item">
           <span class="report-week">Wk 06</span>
-          <span class="report-title">Communication Protocols (UART, SPI, I2C)</span>
+          <span class="report-title">Communication Protocols and Introduction to ESP32</span>
           <span class="report-arrow">→</span>
         </a>
       </div>
@@ -171,36 +250,36 @@
     <div class="report-group">
       <h2 class="section-title">Semester 2</h2>
       <div class="report-list">
-        <a href="reports/report7.html" class="report-item">
+        <a href="reports/week7.html" class="report-item">
           <span class="report-week">Wk 07</span>
-          <span class="report-title">RTOS Concepts</span>
+          <span class="report-title">Personal Web Server on Raspberry Pi Pico W</span>
           <span class="report-arrow">→</span>
         </a>
-        <a href="reports/report8.html" class="report-item">
+        <div class="report-item report-item-disabled">
           <span class="report-week">Wk 08</span>
-          <span class="report-title">Sensor Interfacing</span>
-          <span class="report-arrow">→</span>
-        </a>
-        <a href="reports/report9.html" class="report-item">
+          <span class="report-title">Upcoming assignment</span>
+          <span class="report-arrow">Soon</span>
+        </div>
+        <div class="report-item report-item-disabled">
           <span class="report-week">Wk 09</span>
-          <span class="report-title">Actuator Control</span>
-          <span class="report-arrow">→</span>
-        </a>
-        <a href="reports/report10.html" class="report-item">
+          <span class="report-title">Upcoming assignment</span>
+          <span class="report-arrow">Soon</span>
+        </div>
+        <div class="report-item report-item-disabled">
           <span class="report-week">Wk 10</span>
-          <span class="report-title">Wireless Communication (Bluetooth, Wi-Fi)</span>
-          <span class="report-arrow">→</span>
-        </a>
-        <a href="reports/report11.html" class="report-item">
+          <span class="report-title">Upcoming assignment</span>
+          <span class="report-arrow">Soon</span>
+        </div>
+        <div class="report-item report-item-disabled">
           <span class="report-week">Wk 11</span>
-          <span class="report-title">Project Planning and Design</span>
-          <span class="report-arrow">→</span>
-        </a>
-        <a href="reports/report12.html" class="report-item">
+          <span class="report-title">Upcoming assignment</span>
+          <span class="report-arrow">Soon</span>
+        </div>
+        <div class="report-item report-item-disabled">
           <span class="report-week">Wk 12</span>
-          <span class="report-title">Final Project Implementation</span>
-          <span class="report-arrow">→</span>
-        </a>
+          <span class="report-title">Upcoming assignment</span>
+          <span class="report-arrow">Soon</span>
+        </div>
       </div>
     </div>
 

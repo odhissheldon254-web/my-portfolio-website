@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Week 7 Report — Sheldon Odhiambo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f0e;
+      --surface: #141716;
+      --border: #1f2421;
+      --text: #e8ede9;
+      --muted: #6b7a6d;
+      --accent: #4ade80;
+      --accent-dim: rgba(74, 222, 128, 0.08);
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-sans: 'IBM Plex Sans', sans-serif;
+    }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: var(--font-sans); font-size: 15px; line-height: 1.6;
+    }
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,15,14,0.92); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 54px;
+    }
+    .nav-logo {
+      font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+      color: var(--accent); text-decoration: none;
+      display: flex; align-items: center; gap: 6px; letter-spacing: 0.04em;
+    }
+    .nav-links { display: flex; gap: 0; list-style: none; }
+    .nav-links a {
+      font-family: var(--font-mono); font-size: 12px; color: var(--muted);
+      text-decoration: none; padding: 6px 14px; border-radius: 4px;
+    }
+    .nav-links a:hover { color: var(--accent); background: var(--accent-dim); }
+
+    main { max-width: 800px; margin: 0 auto; padding: 4rem 2rem; }
+    .meta { font-family: var(--font-mono); font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 1rem; }
+    h1 { font-size: 2.5rem; font-weight: 600; margin-bottom: 1.5rem; letter-spacing: -0.02em; }
+    h2 { font-size: 1.25rem; font-weight: 600; margin: 2.5rem 0 1rem; color: var(--accent); display: flex; align-items: center; gap: 10px; }
+    h2::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    p { margin-bottom: 1.2rem; color: #b0b8b2; }
+    ul { margin-bottom: 1.5rem; padding-left: 1.2rem; list-style: none; }
+    li { margin-bottom: 0.5rem; position: relative; color: #b0b8b2; }
+    li::before { content: '>'; position: absolute; left: -1.2rem; color: var(--accent); font-family: var(--font-mono); }
+
+    .code-block {
+      background: #080a09; border: 1px solid var(--border); border-radius: 8px;
+      padding: 1.5rem; margin: 2rem 0; overflow-x: auto;
+      font-family: var(--font-mono); font-size: 13px; color: #d1d9d2; line-height: 1.5;
+      white-space: pre;
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--muted); text-decoration: none; font-family: var(--font-mono);
+      font-size: 12px; margin-top: 3rem; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+    footer {
+      border-top: 1px solid var(--border); padding: 2rem; text-align: center;
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../index.html" class="nav-logo"><span>⚡</span> SO</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../about.html">About</a></li>
+      <li><a href="../reports.html">Reports</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="meta">Week 07 — IoT Web Server</div>
+    <h1>Personal Web Server on Raspberry Pi Pico W</h1>
+
+    <p>
+      This assignment introduced the Raspberry Pi Pico W as a networked embedded device.
+      The goal was to serve a small personal website directly from the microcontroller using CircuitPython, Wi-Fi, sockets, and the Adafruit HTTP server library.
+    </p>
+
+    <h2>Learning Objectives</h2>
+    <ul>
+      <li>Connect a Pico W to a Wi-Fi network and read its IP address from the serial console.</li>
+      <li>Use a microcontroller as a small HTTP server.</li>
+      <li>Serve separate HTML, CSS, and image files from the board.</li>
+      <li>Understand request/response communication in a practical IoT example.</li>
+      <li>Reflect on the limits of microcontroller-hosted websites.</li>
+    </ul>
+
+    <h2>Project Structure</h2>
+    <p>
+      The required files are stored on the CircuitPython drive. The browser requests a route, and the Pico W responds with the correct file.
+    </p>
+
+    <div class="code-block">CIRCUITPY/
+|-- code.py
+|-- index.html
+|-- style.css
+|-- image.jpg
+`-- lib/
+    |-- wifi
+    |-- socketpool
+    `-- adafruit_httpserver</div>
+
+    <h2>Server Code</h2>
+    <p>
+      The server connects to Wi-Fi, creates a socket pool, then maps routes to files.
+      Opening the board IP address in a browser loads the page from the microcontroller.
+    </p>
+
+    <div class="code-block">import wifi
+import socketpool
+from adafruit_httpserver import Server, Request, FileResponse
+
+SSID = "YOUR_WIFI"
+PASSWORD = "YOUR_PASSWORD"
+
+wifi.radio.connect(SSID, PASSWORD)
+print("Connected to WiFi!")
+print("IP Address:", wifi.radio.ipv4_address)
+
+pool = socketpool.SocketPool(wifi.radio)
+server = Server(pool, "/static")
+
+@server.route("/")
+def base(request: Request):
+    return FileResponse(request, "index.html", "/")
+
+@server.route("/style.css")
+def css(request: Request):
+    return FileResponse(request, "style.css", "/")
+
+@server.route("/image.jpg")
+def image(request: Request):
+    return FileResponse(request, "image.jpg", "/")
+
+server.start(str(wifi.radio.ipv4_address))
+print("Server running...")
+
+while True:
+    server.poll()</div>
+
+    <h2>IoT Protocol Notes</h2>
+    <p>
+      HTTP is simple and works well when a browser needs to request a page or API response from a device.
+      MQTT is better for frequent low-power IoT messages because it uses a publish/subscribe model through a broker.
+      CoAP and WebSockets are also useful in specific IoT cases, depending on power, bandwidth, and real-time requirements.
+    </p>
+
+    <h2>Reflection</h2>
+    <p>
+      In this setup, the microcontroller acts as a server and the browser acts as the client.
+      The main limitation is that a small board has limited memory and processing power, so it is best for lightweight dashboards, status pages, and local control interfaces rather than heavy websites.
+      The same idea can be used in real IoT systems to display sensor readings, control outputs, or configure a device from a phone or laptop.
+    </p>
+
+    <a href="../reports.html" class="back-link">&larr; Back to Reports</a>
+  </main>
+
+  <footer>
+    &copy; 2026 Sheldon Odhiambo — Gearbox Academy
+  </footer>
+</body>
+</html>

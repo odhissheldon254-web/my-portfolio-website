@@ -86,36 +86,46 @@
   </nav>
 
   <main>
-    <div class="meta">Week 04 — Asynchronous Logic</div>
-    <h1>Interrupts and Timers</h1>
+    <div class="meta">Week 04 — Pico & Sensors</div>
+    <h1>Raspberry Pi Pico Programming and Sensor Integration</h1>
     
     <p>
-      In Week 4, we moved beyond basic sequential execution by diving into hardware interrupts and timers. 
-      Relying on empty <code>delay()</code> functions wastes CPU cycles; interrupts allow an embedded system to react instantly to external events while performing other critical background work.
+      Week 4 focused on moving from simple simulations into Raspberry Pi Pico programming and sensor-based embedded systems.
+      The work combined C, CircuitPython, hardware input/output, sensor interfacing, interrupts, and the communication methods used to connect microcontrollers to external devices.
     </p>
 
     <h2>Learning Objectives</h2>
     <ul>
-      <li>Understanding Interrupt Service Routines (ISRs).</li>
-      <li>Configuring Hardware Timers (Timer0, Timer1 on AVR).</li>
-      <li>Debouncing switches using timer-based logic instead of delays.</li>
-      <li>Best practices for volatile variables and ISR speed optimization.</li>
+      <li>Program the Raspberry Pi Pico using both C and CircuitPython.</li>
+      <li>Connect external sensors to a microcontroller and read their signals.</li>
+      <li>Use interrupts to respond to hardware events without constantly polling.</li>
+      <li>Understand how UART, SPI, and I2C support sensor and peripheral communication.</li>
+      <li>Build confidence moving from simulated circuits to physical embedded hardware.</li>
     </ul>
 
-    <h2>Key Insights</h2>
+    <h2>Sensor Integration</h2>
     <p>
-      One major takeaway was learning that an ISR must execute as quickly as possible. Performing heavy math or operations like serial printing inside an ISR can cause the microcontroller to crash or miss other critical timing events. We explored how to use flags to signal the main loop to perform the heavy lifting.
+      The Pico acts as the controller that reads sensor signals, processes them in software, and then produces a useful output.
+      Sensor integration requires correct wiring, correct voltage levels, and code that converts raw readings into meaningful information.
+      This week also introduced the idea that a sensor project is both a hardware problem and a software problem.
+    </p>
+
+    <h2>Interrupts</h2>
+    <p>
+      Interrupts allow a microcontroller to respond immediately when something important happens, such as a button press or a sensor trigger.
+      Instead of wasting CPU time checking an input forever, the main program can continue running and an interrupt service routine can set a flag when attention is needed.
+      A key lesson was that interrupt routines should stay short and avoid heavy work such as long calculations or serial printing.
     </p>
 
     <div class="code-block">
-<span class="comment">// Example: Hardware Interrupt with Flag Logic</span>
-<span class="type">const int</span> interruptPin = <span class="string">2</span>;
+<span class="comment">// Interrupt pattern: keep the ISR short and process later</span>
+<span class="type">const int</span> sensorPin = <span class="string">2</span>;
 <span class="type">volatile bool</span> eventTriggered = <span class="keyword">false</span>;
 
 <span class="keyword">void</span> <span class="fn">setup</span>() {
   <span class="fn">Serial</span>.<span class="fn">begin</span>(9600);
-  <span class="fn">pinMode</span>(interruptPin, <span class="keyword">INPUT_PULLUP</span>);
-  <span class="fn">attachInterrupt</span>(<span class="fn">digitalPinToInterrupt</span>(interruptPin), handleEvent, <span class="keyword">FALLING</span>);
+  <span class="fn">pinMode</span>(sensorPin, <span class="keyword">INPUT_PULLUP</span>);
+  <span class="fn">attachInterrupt</span>(<span class="fn">digitalPinToInterrupt</span>(sensorPin), handleEvent, <span class="keyword">FALLING</span>);
 }
 
 <span class="keyword">void</span> <span class="fn">loop</span>() {
@@ -131,6 +141,18 @@
   eventTriggered = <span class="keyword">true</span>;
 }
     </div>
+
+    <h2>Communication Notes</h2>
+    <p>
+      UART is useful for simple serial communication and debugging. I2C allows several addressed devices to share two lines, SDA and SCL, which is useful for many sensors and displays.
+      SPI uses separate data and clock lines plus chip select, making it faster and suitable for peripherals such as displays, SD card modules, and radio modules.
+    </p>
+
+    <h2>Reflection</h2>
+    <p>
+      This week made the embedded systems workflow clearer: select a sensor, wire it correctly, choose the right communication method, then write code that reacts reliably.
+      Interrupts are especially important because they make a system more responsive without forcing every task to run in a blocking loop.
+    </p>
 
     <a href="../reports.html" class="back-link">← Back to Reports</a>
   </main>

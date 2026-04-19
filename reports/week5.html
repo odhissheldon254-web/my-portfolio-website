@@ -86,26 +86,35 @@
   </nav>
 
   <main>
-    <div class="meta">Week 05 — Analog Sensors</div>
-    <h1>Analog to Digital Conversion (ADC)</h1>
+    <div class="meta">Week 05 — Advanced Pico</div>
+    <h1>Advanced Pico Programming, Sensors, and LCD Displays</h1>
     
     <p>
-      While microcontrollers process discrete digital signals consisting of 1s and 0s, the real world operates in a continuum. 
-      Week 5 of our instrumentation training tackled reading environmental data via Analog to Digital Converters (ADCs). 
+      Week 5 continued Raspberry Pi Pico development with more sensor work, display output, and stronger input-handling logic.
+      The main idea was to connect real-world measurements to readable feedback, using sensors for input and an LCD or other output device to show results.
     </p>
 
     <h2>Learning Objectives</h2>
     <ul>
-      <li>Understanding ADC Resolution (10-bit vs 12-bit).</li>
-      <li>Calculating step sizes and continuous signal approximation.</li>
-      <li>Reading potentiometers and light-dependent resistors (LDRs).</li>
-      <li>Applying moving average filters to noisy sensor data.</li>
+      <li>Continue programming the Raspberry Pi Pico using CircuitPython and Thonny.</li>
+      <li>Combine sensors with display output for practical embedded feedback.</li>
+      <li>Understand analog interfacing using ADC, PWM, and DAC concepts.</li>
+      <li>Use debounce logic so button input creates stable, intentional actions.</li>
+      <li>Relate digital microcontroller logic to continuous real-world signals.</li>
     </ul>
 
-    <h2>Key Insights</h2>
+    <h2>Sensors and Display Output</h2>
     <p>
-      An Arduino Uno's 10-bit ADC breaks a 0-5V signal into 1,024 discrete steps. This gives a resolution of roughly 4.88mV per step. 
-      We learned how to sample these values and map them to meaningful variables (like converting a voltage drop across a thermistor directly into a temperature value in Celsius).
+      A sensor system becomes more useful when the measured value is displayed clearly.
+      In a Pico-based setup, sensor readings can be processed in code and then shown on an LCD display, printed to the serial monitor, or used to trigger another output.
+      This links input, processing, and output into one complete embedded workflow.
+    </p>
+
+    <h2>Analog Interfacing</h2>
+    <p>
+      Microcontrollers are digital, but the real world is often analog.
+      ADC converts a continuous voltage into a digital value, PWM creates an analog-like output by changing duty cycle, and DAC produces a true analog voltage where available.
+      These tools are important for temperature sensors, light sensors, motor control, LED brightness, and battery monitoring.
     </p>
 
     <div class="code-block">
@@ -134,6 +143,19 @@
   <span class="fn">delay</span>(<span class="string">50</span>);
 }
     </div>
+
+    <h2>Debounce Practice</h2>
+    <p>
+      Mechanical buttons can bounce, which means one physical press may appear as several fast changes to the microcontroller.
+      Debounce logic waits for the input to remain stable before accepting it, making button-controlled systems behave like the user expects.
+      This is important when a button toggles an LED, changes a mode, or confirms an action.
+    </p>
+
+    <h2>Reflection</h2>
+    <p>
+      The biggest lesson from this week was that embedded systems need stable inputs and clear outputs.
+      Sensors collect information from the environment, ADC/PWM/DAC concepts help translate between analog and digital behavior, and displays make the result understandable to the user.
+    </p>
 
     <a href="../reports.html" class="back-link">← Back to Reports</a>
   </main>

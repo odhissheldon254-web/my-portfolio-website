@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Week 6 Report — Sheldon Odhiambo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f0e;
+      --surface: #141716;
+      --border: #1f2421;
+      --text: #e8ede9;
+      --muted: #6b7a6d;
+      --accent: #4ade80;
+      --accent-dim: rgba(74, 222, 128, 0.08);
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-sans: 'IBM Plex Sans', sans-serif;
+    }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: var(--font-sans); font-size: 15px; line-height: 1.6;
+    }
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,15,14,0.92); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 54px;
+    }
+    .nav-logo {
+      font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+      color: var(--accent); text-decoration: none;
+      display: flex; align-items: center; gap: 6px; letter-spacing: 0.04em;
+    }
+    .nav-links { display: flex; gap: 0; list-style: none; }
+    .nav-links a {
+      font-family: var(--font-mono); font-size: 12px; color: var(--muted);
+      text-decoration: none; padding: 6px 14px; border-radius: 4px;
+    }
+    .nav-links a:hover { color: var(--accent); background: var(--accent-dim); }
+
+    main { max-width: 800px; margin: 0 auto; padding: 4rem 2rem; }
+    .meta { font-family: var(--font-mono); font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 1rem; }
+    h1 { font-size: 2.5rem; font-weight: 600; margin-bottom: 1.5rem; letter-spacing: -0.02em; }
+    h2 { font-size: 1.25rem; font-weight: 600; margin: 2.5rem 0 1rem; color: var(--accent); display: flex; align-items: center; gap: 10px; }
+    h2::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    p { margin-bottom: 1.2rem; color: #b0b8b2; }
+    ul { margin-bottom: 1.5rem; padding-left: 1.2rem; list-style: none; }
+    li { margin-bottom: 0.5rem; position: relative; color: #b0b8b2; }
+    li::before { content: '>'; position: absolute; left: -1.2rem; color: var(--accent); font-family: var(--font-mono); }
+
+    .code-block {
+      background: #080a09; border: 1px solid var(--border); border-radius: 8px;
+      padding: 1.5rem; margin: 2rem 0; overflow-x: auto;
+      font-family: var(--font-mono); font-size: 13px; color: #d1d9d2; line-height: 1.5;
+      white-space: pre;
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--muted); text-decoration: none; font-family: var(--font-mono);
+      font-size: 12px; margin-top: 3rem; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+    footer {
+      border-top: 1px solid var(--border); padding: 2rem; text-align: center;
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../index.html" class="nav-logo"><span>⚡</span> SO</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../about.html">About</a></li>
+      <li><a href="../reports.html">Reports</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="meta">Week 06 — Communication & ESP32</div>
+    <h1>Communication Protocols and Introduction to ESP32</h1>
+
+    <p>
+      This week focused on communication protocols used in embedded systems and the transition toward ESP32 development.
+      The work covered UART, SPI, I2C, Wi-Fi, ESP-IDF setup, and a practical debounce assignment connected to reliable digital input.
+    </p>
+
+    <h2>Learning Objectives</h2>
+    <ul>
+      <li>Understand why mechanical pushbuttons can produce bouncing signals.</li>
+      <li>Compare synchronous and asynchronous serial communication.</li>
+      <li>Identify when UART, SPI, I2C, and Wi-Fi are useful in embedded systems.</li>
+      <li>Prepare the ESP32 development environment by installing ESP-IDF and the Arduino IDE board package.</li>
+      <li>Understand why mechanical pushbuttons can produce bouncing signals.</li>
+      <li>Implement software debounce so one press creates one clear action.</li>
+    </ul>
+
+    <h2>Assignment: Debounced LED Toggle</h2>
+    <p>
+      The hardware setup uses a pushbutton connected to GP15 with a 10k ohm pull-down resistor, and the onboard LED as the output.
+      A raw button read can toggle the LED many times from a single press because the metal contacts inside the switch vibrate briefly.
+      The debounce algorithm waits until the reading has stayed stable for a short interval before accepting the press.
+    </p>
+
+    <div class="code-block">import board
+import digitalio
+import time
+
+button = digitalio.DigitalInOut(board.GP15)
+button.direction = digitalio.Direction.INPUT
+
+led = digitalio.DigitalInOut(board.LED)
+led.direction = digitalio.Direction.OUTPUT
+
+last_reading = False
+stable_state = False
+last_button_state = False
+led_state = False
+last_change_time = time.monotonic()
+debounce_delay = 0.05
+
+while True:
+    reading = button.value
+
+    if reading != last_reading:
+        last_change_time = time.monotonic()
+
+    if time.monotonic() - last_change_time &gt; debounce_delay:
+        if reading != stable_state:
+            stable_state = reading
+
+            if stable_state and not last_button_state:
+                led_state = not led_state
+
+    led.value = led_state
+    last_button_state = stable_state
+    last_reading = reading
+    time.sleep(0.01)</div>
+
+    <h2>Communication Protocols</h2>
+    <p>
+      UART is asynchronous, so it does not use a shared clock. It sends data with start and stop bits and is useful for simple serial links.
+      SPI is synchronous and fast, using MOSI, MISO, SCLK, and a chip-select line to communicate with devices such as SD card modules and displays.
+      I2C is also synchronous, but it uses only SDA and SCL lines plus device addresses, making it practical when many low-speed sensors share one bus.
+    </p>
+    <p>
+      Wi-Fi extends embedded communication beyond wires. A board can connect as a client to an existing network or act as a small server for web-based control and monitoring.
+    </p>
+
+    <h2>ESP32 Setup</h2>
+    <p>
+      ESP32 introduces built-in Wi-Fi and Bluetooth support, making it useful for connected embedded systems.
+      The setup task was to install ESP-IDF, review the ESP32 development workflow, and add the Espressif board manager package in Arduino IDE before the next class.
+    </p>
+
+    <h2>Reflection</h2>
+    <p>
+      The main lesson was that embedded systems need reliable input handling and the correct communication method for each job.
+      Pull-down resistors and debounce logic keep button input stable, while UART, SPI, I2C, and Wi-Fi each solve different data-transfer problems.
+    </p>
+
+    <a href="../reports.html" class="back-link">&larr; Back to Reports</a>
+  </main>
+
+  <footer>
+    &copy; 2026 Sheldon Odhiambo — Gearbox Academy
+  </footer>
+</body>
+</html>

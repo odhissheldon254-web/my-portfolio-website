@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Project 3: Pico W Personal Web Server — Sheldon Odhiambo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f0e; --surface: #141716; --border: #1f2421; --text: #e8ede9;
+      --muted: #6b7a6d; --accent: #4ade80; --accent-dim: rgba(74, 222, 128, 0.08);
+      --font-mono: 'IBM Plex Mono', monospace; --font-sans: 'IBM Plex Sans', sans-serif;
+    }
+    body { background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 15px; line-height: 1.6; }
+    nav {
+      position: sticky; top: 0; z-index: 100; background: rgba(13,15,14,0.92); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 54px;
+    }
+    .nav-logo { font-family: var(--font-mono); font-size: 13px; font-weight: 500; color: var(--accent); text-decoration: none; display: flex; align-items: center; gap: 6px; letter-spacing: 0.04em; }
+    .nav-links { display: flex; gap: 0; list-style: none; }
+    .nav-links a { font-family: var(--font-mono); font-size: 12px; color: var(--muted); text-decoration: none; padding: 6px 14px; border-radius: 4px; }
+    .nav-links a:hover { color: var(--accent); background: var(--accent-dim); }
+    main { max-width: 800px; margin: 0 auto; padding: 4rem 2rem; }
+    .meta { font-family: var(--font-mono); font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 1rem; }
+    h1 { font-size: 2.5rem; font-weight: 600; margin-bottom: 1.5rem; letter-spacing: -0.02em; }
+    h2 { font-size: 1.25rem; font-weight: 600; margin: 2.5rem 0 1rem; color: var(--accent); display: flex; align-items: center; gap: 10px; }
+    h2::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    p { margin-bottom: 1.2rem; color: #b0b8b2; }
+    ul { margin-bottom: 1.5rem; padding-left: 1.2rem; list-style: none; }
+    li { margin-bottom: 0.5rem; position: relative; color: #b0b8b2; }
+    li::before { content: '>'; position: absolute; left: -1.2rem; color: var(--accent); font-family: var(--font-mono); }
+    .sim-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 2rem 0; }
+    .sim-title { font-weight: 600; font-size: 14px; color: var(--text); margin-bottom: 0.5rem; }
+    .code-block { background: #080a09; border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 2rem 0; overflow-x: auto; font-family: var(--font-mono); font-size: 13px; color: #d1d9d2; line-height: 1.5; white-space: pre; }
+    .back-link { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); text-decoration: none; font-family: var(--font-mono); font-size: 12px; margin-top: 3rem; }
+    .back-link:hover { color: var(--accent); }
+    footer { border-top: 1px solid var(--border); padding: 2rem; text-align: center; font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../index.html" class="nav-logo"><span>⚡</span> SO</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../about.html">About</a></li>
+      <li><a href="../reports.html">Reports</a></li>
+      <li><a href="index.html">Projects</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="meta">Project 03 — IoT Web Server</div>
+    <h1>Raspberry Pi Pico W Personal Web Server</h1>
+
+    <p>
+      This project turns a Raspberry Pi Pico W into a small web server.
+      When another device connects to the same Wi-Fi network and opens the Pico W IP address, the microcontroller serves a personal webpage with HTML, CSS, and an image.
+    </p>
+
+    <h2>Project Requirements</h2>
+    <ul>
+      <li>Raspberry Pi Pico W</li>
+      <li>CircuitPython firmware</li>
+      <li>Wi-Fi access</li>
+      <li>Adafruit HTTP server library</li>
+      <li>Files on the board: code.py, index.html, style.css, and image.jpg</li>
+    </ul>
+
+    <h2>How It Works</h2>
+    <p>
+      The Pico W connects to Wi-Fi, prints its IP address in the serial console, and starts listening for browser requests.
+      The root route serves the HTML file, while separate routes serve the stylesheet and image.
+      This is a simple but useful example of an embedded device acting as a web server.
+    </p>
+
+    <div class="sim-card">
+      <div class="sim-title">Simulation link: To be added</div>
+      <p style="font-size: 13px; margin: 0;">The hardware test link, screenshot, or browser result will be added after the Pico W server is tested again.</p>
+    </div>
+
+    <h2>Server Code</h2>
+    <div class="code-block">import wifi
+import socketpool
+from adafruit_httpserver import Server, Request, FileResponse
+
+SSID = "YOUR_WIFI"
+PASSWORD = "YOUR_PASSWORD"
+
+wifi.radio.connect(SSID, PASSWORD)
+print("Connected to WiFi!")
+print("IP Address:", wifi.radio.ipv4_address)
+
+pool = socketpool.SocketPool(wifi.radio)
+server = Server(pool, "/static")
+
+@server.route("/")
+def base(request: Request):
+    return FileResponse(request, "index.html", "/")
+
+@server.route("/style.css")
+def css(request: Request):
+    return FileResponse(request, "style.css", "/")
+
+@server.route("/image.jpg")
+def image(request: Request):
+    return FileResponse(request, "image.jpg", "/")
+
+server.start(str(wifi.radio.ipv4_address))
+print("Server running...")
+
+while True:
+    server.poll()</div>
+
+    <h2>What I Learned</h2>
+    <p>
+      This project helped connect embedded systems with web technology.
+      The microcontroller is not only reading pins or blinking LEDs; it can also communicate over a network and provide a browser-based interface for users.
+    </p>
+
+    <a href="index.html" class="back-link">&larr; Back to Projects</a>
+  </main>
+
+  <footer>
+    &copy; 2026 Sheldon Odhiambo — Gearbox Academy
+  </footer>
+</body>
+</html>

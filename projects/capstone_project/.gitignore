@@ -1,0 +1,19 @@
+# Compiled binaries
+airos_bench
+*.o
+*.a
+*.so
+*.out
+
+# Build artifacts
+benchmark_results.csv
+
+# Editor / OS
+.DS_Store
+.vscode/
+*.swp
+*.swo
+*~
+
+# Docs (keep source, not .docx)
+*.docx

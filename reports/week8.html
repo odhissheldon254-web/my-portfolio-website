@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Week 8 Report — Sheldon Odhiambo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f0e;
+      --surface: #141716;
+      --border: #1f2421;
+      --text: #e8ede9;
+      --muted: #6b7a6d;
+      --accent: #4ade80;
+      --accent-dim: rgba(74, 222, 128, 0.08);
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-sans: 'IBM Plex Sans', sans-serif;
+    }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: var(--font-sans); font-size: 15px; line-height: 1.6;
+    }
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,15,14,0.92); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 54px;
+    }
+    .nav-logo {
+      font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+      color: var(--accent); text-decoration: none;
+      display: flex; align-items: center; gap: 6px; letter-spacing: 0.04em;
+    }
+    .nav-links { display: flex; gap: 0; list-style: none; }
+    .nav-links a {
+      font-family: var(--font-mono); font-size: 12px; color: var(--muted);
+      text-decoration: none; padding: 6px 14px; border-radius: 4px;
+    }
+    .nav-links a:hover { color: var(--accent); background: var(--accent-dim); }
+
+    main { max-width: 800px; margin: 0 auto; padding: 4rem 2rem; }
+    .meta { font-family: var(--font-mono); font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 1rem; }
+    h1 { font-size: 2.5rem; font-weight: 600; margin-bottom: 1.5rem; letter-spacing: -0.02em; }
+    h2 { font-size: 1.25rem; font-weight: 600; margin: 2.5rem 0 1rem; color: var(--accent); display: flex; align-items: center; gap: 10px; }
+    h2::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    p { margin-bottom: 1.2rem; color: #b0b8b2; }
+    ul { margin-bottom: 1.5rem; padding-left: 1.2rem; list-style: none; }
+    li { margin-bottom: 0.5rem; position: relative; color: #b0b8b2; }
+    li::before { content: '>'; position: absolute; left: -1.2rem; color: var(--accent); font-family: var(--font-mono); }
+
+    .code-block {
+      background: #080a09; border: 1px solid var(--border); border-radius: 8px;
+      padding: 1.5rem; margin: 2rem 0; overflow-x: auto;
+      font-family: var(--font-mono); font-size: 13px; color: #d1d9d2; line-height: 1.5;
+      white-space: pre;
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--muted); text-decoration: none; font-family: var(--font-mono);
+      font-size: 12px; margin-top: 3rem; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+    .sim-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: 1.5rem; margin: 2rem 0; display: flex; flex-direction: column; gap: 1rem;
+    }
+    .sim-header { display: flex; justify-content: space-between; align-items: center; }
+    .sim-title { font-weight: 600; font-size: 14px; color: var(--text); }
+    code { font-family: var(--font-mono); font-size: 0.9em; color: var(--accent); }
+    footer {
+      border-top: 1px solid var(--border); padding: 2rem; text-align: center;
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../index.html" class="nav-logo"><span>⚡</span> SO</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../about.html">About</a></li>
+      <li><a href="../reports.html">Reports</a></li>
+      <li><a href="../projects/index.html">Projects</a></li>
+    </ul>
+  </nav>
+
+
+  <main>
+    <div class="meta">Week 08 — Arduino Core &amp; Libraries</div>
+    <h1>ESP32 Exploration and Library Management</h1>
+
+    <p>
+      Week 7 approached the ESP32 through ESP-IDF, writing C against Espressif's own drivers. Week 8 came back to
+      the same chip from the other direction: the Arduino core, where most of the low-level work is already wrapped
+      in libraries. The point was not that one approach is better, but knowing which one a given job calls for.
+    </p>
+
+    <h2>Learning Objectives</h2>
+    <ul>
+      <li>Add ESP32 board support to the Arduino IDE through the Boards Manager.</li>
+      <li>Find, install, and update third-party libraries using the Library Manager.</li>
+      <li>Understand what a library actually contains and how the IDE finds it.</li>
+      <li>Diagnose version conflicts and missing dependencies.</li>
+      <li>Use a built-in library to drive ESP32 hardware with very little code.</li>
+    </ul>
+
+    <h2>Board Support Comes First</h2>
+    <p>
+      The Arduino IDE does not know about the ESP32 out of the box. Espressif publishes a board package, and the
+      URL for it has to be added under <em>Preferences &rarr; Additional Boards Manager URLs</em> before the chip
+      appears in the board list at all.
+    </p>
+
+    <div class="code-block">https://espressif.github.io/arduino-esp32/package_esp32_index.json</div>
+
+    <p>
+      With that URL in place, Boards Manager offers "esp32 by Espressif Systems". Installing it pulls down the
+      compiler toolchain, the ESP32 variants, and the upload tool &mdash; which is why the first install is a large
+      download and every one after that is quick.
+    </p>
+
+    <h2>What a Library Actually Is</h2>
+    <p>
+      A library is just a folder the IDE knows where to look for. Inside it there is header and source code, a
+      <code>library.properties</code> file describing the name and version, and usually an <code>examples</code>
+      folder. Those examples matter more than they look: opening one from
+      <em>File &rarr; Examples</em> is the fastest way to learn a library, because it is code the author knows works.
+    </p>
+
+    <div class="code-block">MyLibrary/
+|-- library.properties     # name, version, author, dependencies
+|-- src/
+|   |-- MyLibrary.h        # the public interface
+|   `-- MyLibrary.cpp      # the implementation
+`-- examples/
+    `-- Basic/Basic.ino    # a sketch that is known to work</div>
+
+    <h2>Using a Built-in Library</h2>
+    <p>
+      The ESP32 board package ships with <code>WiFi.h</code>, so a network scan needs no external hardware and no
+      extra install. It is a good first test that the board package is working, because a failure here is a setup
+      problem rather than a wiring problem.
+    </p>
+
+    <div class="code-block">#include &lt;WiFi.h&gt;
+
+void setup() {
+  Serial.begin(115200);
+
+  // disconnect from any previous network before scanning
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+  delay(100);
+
+  Serial.println("Scanning...");
+}
+
+void loop() {
+  int found = WiFi.scanNetworks();
+
+  if (found == 0) {
+    Serial.println("No networks found");
+  } else {
+    for (int i = 0; i &lt; found; i++) {
+      Serial.print(i + 1);
+      Serial.print(": ");
+      Serial.print(WiFi.SSID(i));
+      Serial.print("  (");
+      Serial.print(WiFi.RSSI(i));
+      Serial.println(" dBm)");
+      delay(10);
+    }
+  }
+
+  WiFi.scanDelete();
+  delay(5000);
+}</div>
+
+    <p>
+      Two lines are doing quiet work here. <code>WiFi.scanDelete()</code> frees the results, and without it repeated
+      scans leak memory until the board resets. <code>WiFi.disconnect()</code> before scanning avoids results that
+      are missing networks because the radio was still associated with one.
+    </p>
+
+    <h2>When Libraries Fight</h2>
+    <p>
+      The cost of using other people's code is that two libraries can disagree. The failures follow a small number
+      of patterns, and recognising them saves a lot of time:
+    </p>
+    <ul>
+      <li><strong>Missing dependency</strong> &mdash; a library depends on another that was never installed, and the
+          error names a header the sketch never mentions.</li>
+      <li><strong>Version drift</strong> &mdash; example code written for an older release calls a function that has
+          since been renamed, so the library is installed correctly and still will not compile.</li>
+      <li><strong>Duplicate names</strong> &mdash; two libraries define the same class, and the IDE picks one without
+          being asked. The IDE reports which path it used; that message is worth reading rather than scrolling past.</li>
+      <li><strong>Wrong architecture</strong> &mdash; a library written for AVR touches registers the ESP32 does not
+          have, and no amount of correct wiring will fix it.</li>
+    </ul>
+
+    <h2>Reflection</h2>
+    <p>
+      Comparing the two weeks directly was the useful part. The ESP-IDF blink from week 7 needed a CMake project, a
+      component file, and an explicit FreeRTOS delay. The Arduino equivalent is a few lines, because the same work
+      is happening underneath where it cannot be seen or changed.
+    </p>
+    <p>
+      That trade decides which to reach for. Arduino libraries are the right tool for getting a sensor answering
+      quickly. ESP-IDF is the right tool when memory, power, or timing has to be controlled rather than accepted.
+    </p>
+
+    <a href="../reports.html" class="back-link">&larr; Back to Reports</a>
+  </main>
+
+  <footer>
+    &copy; 2026 Sheldon Odhiambo — Gearbox Academy
+  </footer>
+
+</body>
+</html>

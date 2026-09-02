@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Week 9 Report — Sheldon Odhiambo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f0e;
+      --surface: #141716;
+      --border: #1f2421;
+      --text: #e8ede9;
+      --muted: #6b7a6d;
+      --accent: #4ade80;
+      --accent-dim: rgba(74, 222, 128, 0.08);
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-sans: 'IBM Plex Sans', sans-serif;
+    }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: var(--font-sans); font-size: 15px; line-height: 1.6;
+    }
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,15,14,0.92); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 54px;
+    }
+    .nav-logo {
+      font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+      color: var(--accent); text-decoration: none;
+      display: flex; align-items: center; gap: 6px; letter-spacing: 0.04em;
+    }
+    .nav-links { display: flex; gap: 0; list-style: none; }
+    .nav-links a {
+      font-family: var(--font-mono); font-size: 12px; color: var(--muted);
+      text-decoration: none; padding: 6px 14px; border-radius: 4px;
+    }
+    .nav-links a:hover { color: var(--accent); background: var(--accent-dim); }
+
+    main { max-width: 800px; margin: 0 auto; padding: 4rem 2rem; }
+    .meta { font-family: var(--font-mono); font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 1rem; }
+    h1 { font-size: 2.5rem; font-weight: 600; margin-bottom: 1.5rem; letter-spacing: -0.02em; }
+    h2 { font-size: 1.25rem; font-weight: 600; margin: 2.5rem 0 1rem; color: var(--accent); display: flex; align-items: center; gap: 10px; }
+    h2::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    p { margin-bottom: 1.2rem; color: #b0b8b2; }
+    ul { margin-bottom: 1.5rem; padding-left: 1.2rem; list-style: none; }
+    li { margin-bottom: 0.5rem; position: relative; color: #b0b8b2; }
+    li::before { content: '>'; position: absolute; left: -1.2rem; color: var(--accent); font-family: var(--font-mono); }
+
+    .code-block {
+      background: #080a09; border: 1px solid var(--border); border-radius: 8px;
+      padding: 1.5rem; margin: 2rem 0; overflow-x: auto;
+      font-family: var(--font-mono); font-size: 13px; color: #d1d9d2; line-height: 1.5;
+      white-space: pre;
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--muted); text-decoration: none; font-family: var(--font-mono);
+      font-size: 12px; margin-top: 3rem; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+    .sim-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: 1.5rem; margin: 2rem 0; display: flex; flex-direction: column; gap: 1rem;
+    }
+    .sim-header { display: flex; justify-content: space-between; align-items: center; }
+    .sim-title { font-weight: 600; font-size: 14px; color: var(--text); }
+    code { font-family: var(--font-mono); font-size: 0.9em; color: var(--accent); }
+    footer {
+      border-top: 1px solid var(--border); padding: 2rem; text-align: center;
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../index.html" class="nav-logo"><span>⚡</span> SO</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../about.html">About</a></li>
+      <li><a href="../reports.html">Reports</a></li>
+      <li><a href="../projects/index.html">Projects</a></li>
+    </ul>
+  </nav>
+
+
+  <main>
+    <div class="meta">Week 09 — RFID &amp; SPI</div>
+    <h1>RFID Integration with Raspberry Pi Pico W</h1>
+
+    <p>
+      Week 9 introduced RFID, which is the first time in the course that a peripheral is not simply wired to the
+      board. The tag has no battery and no connection at all &mdash; it is powered by the reader's own field and
+      answers back through it. Getting a card's identifier onto a serial monitor is the whole exercise, and it
+      builds directly on the SPI work from week 4.
+    </p>
+
+    <h2>Learning Objectives</h2>
+    <ul>
+      <li>Understand how passive RFID tags draw power from the reader's field.</li>
+      <li>Wire an MFRC522 reader module to the Raspberry Pi Pico W over SPI.</li>
+      <li>Read the UID from a card or fob and print it over serial.</li>
+      <li>Understand why the frequency band determines range and card compatibility.</li>
+      <li>Recognise what a UID does and does not prove about the person holding the card.</li>
+    </ul>
+
+    <h2>How a Passive Tag Works</h2>
+    <p>
+      The reader emits a continuous radio field. When a tag enters it, that field induces enough current in the
+      tag's antenna coil to power its small chip. The chip then replies by changing how much energy it absorbs,
+      which the reader detects as a signal. This is why a card works with no battery, and why it stops working the
+      instant it leaves the field.
+    </p>
+    <p>
+      Frequency decides the behaviour. The MFRC522 used here works at <strong>13.56&nbsp;MHz</strong> and reads
+      MIFARE cards over a few centimetres. The other common band, <strong>125&nbsp;kHz</strong>, uses entirely
+      different tags &mdash; a card for one reader is invisible to the other, which is the first thing to check
+      when a tag simply never appears.
+    </p>
+
+    <h2>Wiring the MFRC522 over SPI</h2>
+    <p>
+      SPI needs four signal lines plus a reset, and the module runs on 3.3&nbsp;V. That last detail matters: the
+      Pico is a 3.3&nbsp;V part and the module is too, so they connect directly &mdash; but the same module wired to
+      a 5&nbsp;V board needs level shifting, and feeding it 5&nbsp;V is a common way to destroy one.
+    </p>
+
+    <div class="code-block">MFRC522        Raspberry Pi Pico W
+---------      -------------------
+SDA  (CS)  --> GP17
+SCK        --> GP18
+MOSI       --> GP19
+MISO       --> GP16
+RST        --> GP20
+3.3V       --> 3V3 (OUT)      <-- never 5V
+GND        --> GND</div>
+
+    <h2>Reading a Card UID</h2>
+    <p>
+      With the reader wired, the loop is straightforward: ask whether a new card is present, and if so read its
+      identifier. The UID is a handful of bytes, printed here as hexadecimal so it can be compared against a list
+      later.
+    </p>
+
+    <div class="code-block">import board
+import busio
+import digitalio
+import time
+from mfrc522 import MFRC522
+
+spi = busio.SPI(clock=board.GP18, MOSI=board.GP19, MISO=board.GP16)
+
+cs = digitalio.DigitalInOut(board.GP17)
+rst = digitalio.DigitalInOut(board.GP20)
+
+reader = MFRC522(spi, cs, rst)
+
+print("Hold a card near the reader...")
+
+while True:
+    status, tag_type = reader.request(reader.REQIDL)
+
+    if status == reader.OK:
+        status, raw_uid = reader.anticoll()
+
+        if status == reader.OK:
+            uid = "".join("{:02X}".format(b) for b in raw_uid)
+            print("Card detected - UID:", uid)
+            time.sleep(1)      # avoid reading the same card repeatedly
+
+    time.sleep(0.1)</div>
+
+    <p>
+      The one-second pause after a successful read is not cosmetic. Without it a card held near the reader is
+      detected dozens of times a second, and every one of those would count as a separate event in an application
+      that acts on a scan.
+    </p>
+
+    <h2>What a UID Proves</h2>
+    <p>
+      A UID identifies a card. It does not authenticate anyone, and it is not a secret &mdash; it is transmitted in
+      the clear to any reader that asks, and blank cards that can be written with a chosen UID are inexpensive and
+      easy to buy.
+    </p>
+    <p>
+      That is worth stating plainly before building anything on top of it. MIFARE cards do support real
+      authentication, where the reader proves it knows a key for a specific sector before any data is exchanged.
+      Reading a UID is the beginning of RFID work, not a finished security mechanism.
+    </p>
+
+    <h2>Reflection</h2>
+    <p>
+      The satisfying part of this week is that it makes SPI concrete. In week 4 SPI was a list of signal names;
+      here those signals carry a real conversation with a chip, and the chip talks to something that has no wires
+      at all.
+    </p>
+    <p>
+      The uncomfortable part is realising how weak identification-by-UID actually is. A system that unlocks a door
+      because it recognised a number, where that number is broadcast to anyone who asks for it, is not far from a
+      lock that opens for anyone who knows the shape of the key.
+    </p>
+
+    <a href="../reports.html" class="back-link">&larr; Back to Reports</a>
+  </main>
+
+  <footer>
+    &copy; 2026 Sheldon Odhiambo — Gearbox Academy
+  </footer>
+
+</body>
+</html>

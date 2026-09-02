@@ -116,14 +116,10 @@
       I utilized virtual simulation spaces to debug the circuitry before committing to solder.
     </p>
 
-    <div style="margin: 2rem 0; text-align: center;">
-      <img src="arduino_led_sim.png" alt="Arduino Uno LED Breadboard Simulation" style="max-width: 100%; border-radius: 8px; border: 1px solid var(--border);" />
-    </div>
-
     <div class="sim-card">
         <div class="sim-header">
             <span class="sim-title">Tinkercad: Arduino Uno Layout</span>
-            <a href="https://www.tinkercad.com/things/aeVGRikrNQL-seleste-ledamppushbutton-on-uno-r3" class="sim-link" target="_blank">View Simulation ↗</a>
+            <span class="sim-link" style="color: var(--muted);">Link to be added</span>
         </div>
         <p style="font-size: 13px; margin: 0;">This schematic visually routes the 5V line through the tactile switch and utilizes a pulldown resistor to maintain a clear LOW state when unpressed.</p>
     </div>
@@ -138,29 +134,52 @@
     
     <h2>Core Logic</h2>
     <p>
-      The firmware revolves around constantly polling the GPIO pin connected to the switch, verifying its state, and then outputting a HIGH or LOW signal to the LED pin.
+      A raw read of the switch is not enough. The metal contacts inside a tactile button vibrate for a few
+      milliseconds on every press, so one physical push can register as several transitions. The firmware waits
+      until the reading has held steady for 50&nbsp;ms before accepting it, then toggles the LED on the press edge
+      only &mdash; the same debounce pattern used later in CircuitPython on the Pico.
     </p>
-    
-    <div class="code-block">
-<span class="comment">// Basic LED Toggle Logic</span>
-<span class="type">const int</span> buttonPin = <span class="string">2</span>;
-<span class="type">const int</span> ledPin = <span class="string">13</span>;
 
-<span class="type">int</span> buttonState = <span class="string">0</span>;
+    <div class="code-block">
+<span class="comment">// Debounced LED Toggle - Arduino Uno R3</span>
+<span class="type">const int</span> buttonPin = <span class="string">2</span>;   <span class="comment">// switch to 5V, 10k pull-down to GND</span>
+<span class="type">const int</span> ledPin    = <span class="string">13</span>;  <span class="comment">// LED through a 220 ohm resistor</span>
+
+<span class="type">int</span> ledState     = <span class="keyword">LOW</span>;
+<span class="type">int</span> lastReading  = <span class="keyword">LOW</span>;
+<span class="type">int</span> stableState  = <span class="keyword">LOW</span>;
+
+<span class="type">unsigned long</span> lastChangeTime = <span class="string">0</span>;
+<span class="type">const unsigned long</span> debounceDelay = <span class="string">50</span>;
 
 <span class="keyword">void</span> <span class="fn">setup</span>() {
   <span class="fn">pinMode</span>(ledPin, <span class="keyword">OUTPUT</span>);
   <span class="fn">pinMode</span>(buttonPin, <span class="keyword">INPUT</span>);
+  <span class="fn">digitalWrite</span>(ledPin, ledState);
 }
 
 <span class="keyword">void</span> <span class="fn">loop</span>() {
-  buttonState = <span class="fn">digitalRead</span>(buttonPin);
-  
-  <span class="keyword">if</span> (buttonState == <span class="keyword">HIGH</span>) {
-    <span class="fn">digitalWrite</span>(ledPin, <span class="keyword">HIGH</span>);
-  } <span class="keyword">else</span> {
-    <span class="fn">digitalWrite</span>(ledPin, <span class="keyword">LOW</span>);
+  <span class="type">int</span> reading = <span class="fn">digitalRead</span>(buttonPin);
+
+  <span class="comment">// any change restarts the settling timer</span>
+  <span class="keyword">if</span> (reading != lastReading) {
+    lastChangeTime = <span class="fn">millis</span>();
   }
+
+  <span class="comment">// accept the reading only once it has been stable long enough</span>
+  <span class="keyword">if</span> (<span class="fn">millis</span>() - lastChangeTime &gt; debounceDelay) {
+    <span class="keyword">if</span> (reading != stableState) {
+      stableState = reading;
+
+      <span class="comment">// toggle on the press, not the release</span>
+      <span class="keyword">if</span> (stableState == <span class="keyword">HIGH</span>) {
+        ledState = !ledState;
+        <span class="fn">digitalWrite</span>(ledPin, ledState);
+      }
+    }
+  }
+
+  lastReading = reading;
 }
     </div>
 

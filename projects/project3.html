@@ -114,6 +114,22 @@ print("Server running...")
 while True:
     server.poll()</div>
 
+    <h2>IoT Protocol Notes</h2>
+    <p>
+      HTTP is simple and works well when a browser needs to request a page or API response from a device.
+      MQTT is better for frequent low-power IoT messages because it uses a publish/subscribe model through a broker.
+      CoAP and WebSockets are also useful in specific IoT cases, depending on power, bandwidth, and real-time requirements.
+    </p>
+
+    <h2>Limits of a Microcontroller Web Server</h2>
+    <p>
+      In this setup the microcontroller acts as the server and the browser acts as the client.
+      The main limitation is that a small board has limited memory and processing power, so it suits lightweight
+      dashboards, status pages, and local control interfaces rather than heavy websites.
+      The same idea is used in real IoT systems to display sensor readings, control outputs, or configure a device
+      from a phone or laptop.
+    </p>
+
     <h2>What I Learned</h2>
     <p>
       This project helped connect embedded systems with web technology.

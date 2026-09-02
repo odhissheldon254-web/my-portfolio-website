@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Project 5: ESP32 WiFi Sensor Logger — Sheldon Odhiambo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f0e; --surface: #141716; --border: #1f2421; --text: #e8ede9;
+      --muted: #6b7a6d; --accent: #4ade80; --accent-dim: rgba(74, 222, 128, 0.08);
+      --font-mono: 'IBM Plex Mono', monospace; --font-sans: 'IBM Plex Sans', sans-serif;
+    }
+    body { background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: 15px; line-height: 1.6; }
+    nav { position: sticky; top: 0; z-index: 100; background: rgba(13,15,14,0.92); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; height: 54px; }
+    .nav-logo { font-family: var(--font-mono); font-size: 13px; font-weight: 500; color: var(--accent); text-decoration: none; display: flex; align-items: center; gap: 6px; letter-spacing: 0.04em; }
+    .nav-links { display: flex; gap: 0; list-style: none; }
+    .nav-links a { font-family: var(--font-mono); font-size: 12px; color: var(--muted); text-decoration: none; padding: 6px 14px; border-radius: 4px; }
+    .nav-links a:hover { color: var(--accent); background: var(--accent-dim); }
+    main { max-width: 800px; margin: 0 auto; padding: 4rem 2rem; }
+    .meta { font-family: var(--font-mono); font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 1rem; }
+    h1 { font-size: 2.5rem; font-weight: 600; margin-bottom: 1.5rem; letter-spacing: -0.02em; }
+    h2 { font-size: 1.25rem; font-weight: 600; margin: 2.5rem 0 1rem; color: var(--accent); display: flex; align-items: center; gap: 10px; }
+    h2::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    p { margin-bottom: 1.2rem; color: #b0b8b2; }
+    ul { margin-bottom: 1.5rem; padding-left: 1.2rem; list-style: none; }
+    li { margin-bottom: 0.5rem; position: relative; color: #b0b8b2; }
+    li::before { content: '>'; position: absolute; left: -1.2rem; color: var(--accent); font-family: var(--font-mono); }
+    .sim-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 2rem 0; }
+    .sim-title { font-weight: 600; font-size: 14px; color: var(--text); margin-bottom: 0.5rem; }
+    .sim-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .sim-link { color: var(--accent); text-decoration: none; font-family: var(--font-mono); font-size: 12px; }
+    .sim-link:hover { text-decoration: underline; }
+    .status-pill { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); }
+    .code-block { background: #080a09; border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 2rem 0; overflow-x: auto; font-family: var(--font-mono); font-size: 13px; color: #d1d9d2; line-height: 1.5; white-space: pre; }
+    .keyword { color: #f472b6; }
+    .type { color: #34d399; }
+    .comment { color: #4b5563; }
+    .fn { color: #60a5fa; }
+    .back-link { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); text-decoration: none; font-family: var(--font-mono); font-size: 12px; margin-top: 3rem; }
+    .back-link:hover { color: var(--accent); }
+    footer { border-top: 1px solid var(--border); padding: 2rem; text-align: center; font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../index.html" class="nav-logo"><span>⚡</span> SO</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../about.html">About</a></li>
+      <li><a href="../reports.html">Reports</a></li>
+      <li><a href="index.html">Projects</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="meta">Project 05 — WiFi &amp; Networking</div>
+    <h1>ESP32 WiFi Sensor Logger</h1>
+
+    <p>
+      This project moves from the Pico W's local web server (Project 3) to the other side of the same pattern: an
+      ESP32 that reads a sensor and pushes the data <em>out</em> over WiFi as an HTTP client, the way a real IoT
+      device reports back to a server.
+    </p>
+
+    <h2>Project Goal</h2>
+    <p>
+      Read temperature and humidity from a DHT22, join a WiFi network, and POST each reading as JSON to a real
+      HTTP endpoint on the internet &mdash; not a mock, an actual outbound request from the simulated board.
+    </p>
+
+    <h2>Components</h2>
+    <ul>
+      <li>ESP32 DevKit V1</li>
+      <li>DHT22 temperature and humidity sensor</li>
+      <li>Arduino core libraries: WiFi.h, HTTPClient.h</li>
+      <li>DHT sensor library + Adafruit Unified Sensor (Arduino Library Manager)</li>
+    </ul>
+
+    <div class="sim-card">
+      <div class="sim-header">
+        <span class="sim-title">Wokwi: ESP32 WiFi Sensor Logger</span>
+        <a href="https://wokwi.com/projects/474060779878296577" class="sim-link" target="_blank">View Project ↗</a>
+      </div>
+      <p style="font-size: 13px; margin: 0.5rem 0 0;">
+        Code, libraries, and wiring are saved and load without errors. Wokwi's ESP32 build queue was saturated
+        when this was last tested, so a live run hasn't been confirmed yet &mdash; worth hitting Play again to check.
+        <span class="status-pill">build pending</span>
+      </p>
+    </div>
+
+    <h2>How It Works</h2>
+    <p>
+      The ESP32 joins Wokwi's simulated <code>Wokwi-GUEST</code> access point, which proxies real internet access
+      from inside the simulator, then makes an actual outbound HTTP POST to httpbin.org on every reading.
+    </p>
+
+    <div class="code-block">
+<span class="comment">// ESP32 WiFi Sensor Logger — DHT22 over HTTP POST</span>
+<span class="keyword">#include</span> &lt;WiFi.h&gt;
+<span class="keyword">#include</span> &lt;HTTPClient.h&gt;
+<span class="keyword">#include</span> &lt;DHT.h&gt;
+
+<span class="type">const char</span>* ssid = <span class="comment">"Wokwi-GUEST"</span>;
+<span class="type">const char</span>* serverUrl = <span class="comment">"http://httpbin.org/post"</span>;
+DHT dht(<span class="string">15</span>, DHT22);
+
+<span class="keyword">void</span> <span class="fn">setup</span>() {
+  Serial.<span class="fn">begin</span>(<span class="string">115200</span>);
+  dht.<span class="fn">begin</span>();
+  WiFi.<span class="fn">begin</span>(ssid, <span class="comment">""</span>);
+  <span class="keyword">while</span> (WiFi.<span class="fn">status</span>() != WL_CONNECTED) <span class="fn">delay</span>(<span class="string">500</span>);
+}
+
+<span class="keyword">void</span> <span class="fn">loop</span>() {
+  <span class="type">float</span> t = dht.<span class="fn">readTemperature</span>();
+  <span class="type">float</span> h = dht.<span class="fn">readHumidity</span>();
+
+  HTTPClient http;
+  http.<span class="fn">begin</span>(serverUrl);
+  http.<span class="fn">addHeader</span>(<span class="comment">"Content-Type"</span>, <span class="comment">"application/json"</span>);
+  <span class="type">int</span> code = http.<span class="fn">POST</span>(<span class="comment">"{\"temperature\":" + String(t,1) + ",\"humidity\":" + String(h,1) + "}"</span>);
+  Serial.<span class="fn">println</span>(code);
+  http.<span class="fn">end</span>();
+
+  <span class="fn">delay</span>(<span class="string">10000</span>);
+}</div>
+
+    <h2>What I Learned</h2>
+    <p>
+      Getting an ESP32 sketch onto a free-tier simulator taught me as much about build infrastructure as about
+      firmware: HTTPS pulls in the mbedtls/TLS stack, which is by far the heaviest thing to compile on ESP32, so
+      this uses plain HTTP to keep the build lighter. It's also a reminder that "my code is correct" and "the
+      platform I'm testing on is available" are two different things worth debugging separately.
+    </p>
+
+    <a href="index.html" class="back-link">&larr; Back to Projects</a>
+  </main>
+
+  <footer>
+    &copy; 2026 Sheldon Odhiambo — Gearbox Academy
+  </footer>
+</body>
+</html>

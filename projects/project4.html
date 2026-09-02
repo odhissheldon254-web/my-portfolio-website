@@ -30,6 +30,9 @@
     li::before { content: '>'; position: absolute; left: -1.2rem; color: var(--accent); font-family: var(--font-mono); }
     .sim-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 2rem 0; }
     .sim-title { font-weight: 600; font-size: 14px; color: var(--text); margin-bottom: 0.5rem; }
+    .sim-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .sim-link { color: var(--accent); text-decoration: none; font-family: var(--font-mono); font-size: 12px; }
+    .sim-link:hover { text-decoration: underline; }
     .code-block { background: #080a09; border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 2rem 0; overflow-x: auto; font-family: var(--font-mono); font-size: 13px; color: #d1d9d2; line-height: 1.5; white-space: pre; }
     .back-link { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); text-decoration: none; font-family: var(--font-mono); font-size: 12px; margin-top: 3rem; }
     .back-link:hover { color: var(--accent); }
@@ -72,8 +75,19 @@
     </ul>
 
     <div class="sim-card">
-      <div class="sim-title">Simulation link: To be added</div>
-      <p style="font-size: 13px; margin: 0;">A circuit screenshot, simulation link, or group lab photo will be added here when the project evidence is ready.</p>
+      <div class="sim-header">
+        <span class="sim-title">Wokwi: Ultrasonic Distance Alarm</span>
+        <a href="https://wokwi.com/projects/474057107069938689" class="sim-link" target="_blank">View Simulation ↗</a>
+      </div>
+      <p style="font-size: 13px; margin: 0.5rem 0 0;">HC-SR04 distance sensor drives a buzzer and LED whenever an object comes within 15&nbsp;cm. Verified running in Wokwi with live serial output.</p>
+    </div>
+
+    <div class="sim-card">
+      <div class="sim-header">
+        <span class="sim-title">Wokwi: Temperature &amp; Humidity Display</span>
+        <a href="https://wokwi.com/projects/474057840718940161" class="sim-link" target="_blank">View Simulation ↗</a>
+      </div>
+      <p style="font-size: 13px; margin: 0.5rem 0 0;">DHT22 readings printed live to a 16x2 I2C LCD every 2 seconds. Verified running in Wokwi with live serial output.</p>
     </div>
 
     <h2>Embedded Logic</h2>

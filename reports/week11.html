@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Week 11 Report — Sheldon Odhiambo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f0e;
+      --surface: #141716;
+      --border: #1f2421;
+      --text: #e8ede9;
+      --muted: #6b7a6d;
+      --accent: #4ade80;
+      --accent-dim: rgba(74, 222, 128, 0.08);
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-sans: 'IBM Plex Sans', sans-serif;
+    }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: var(--font-sans); font-size: 15px; line-height: 1.6;
+    }
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,15,14,0.92); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 54px;
+    }
+    .nav-logo {
+      font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+      color: var(--accent); text-decoration: none;
+      display: flex; align-items: center; gap: 6px; letter-spacing: 0.04em;
+    }
+    .nav-links { display: flex; gap: 0; list-style: none; }
+    .nav-links a {
+      font-family: var(--font-mono); font-size: 12px; color: var(--muted);
+      text-decoration: none; padding: 6px 14px; border-radius: 4px;
+    }
+    .nav-links a:hover { color: var(--accent); background: var(--accent-dim); }
+
+    main { max-width: 800px; margin: 0 auto; padding: 4rem 2rem; }
+    .meta { font-family: var(--font-mono); font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 1rem; }
+    h1 { font-size: 2.5rem; font-weight: 600; margin-bottom: 1.5rem; letter-spacing: -0.02em; }
+    h2 { font-size: 1.25rem; font-weight: 600; margin: 2.5rem 0 1rem; color: var(--accent); display: flex; align-items: center; gap: 10px; }
+    h2::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    p { margin-bottom: 1.2rem; color: #b0b8b2; }
+    ul { margin-bottom: 1.5rem; padding-left: 1.2rem; list-style: none; }
+    li { margin-bottom: 0.5rem; position: relative; color: #b0b8b2; }
+    li::before { content: '>'; position: absolute; left: -1.2rem; color: var(--accent); font-family: var(--font-mono); }
+
+    .code-block {
+      background: #080a09; border: 1px solid var(--border); border-radius: 8px;
+      padding: 1.5rem; margin: 2rem 0; overflow-x: auto;
+      font-family: var(--font-mono); font-size: 13px; color: #d1d9d2; line-height: 1.5;
+      white-space: pre;
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--muted); text-decoration: none; font-family: var(--font-mono);
+      font-size: 12px; margin-top: 3rem; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+    .sim-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: 1.5rem; margin: 2rem 0; display: flex; flex-direction: column; gap: 1rem;
+    }
+    .sim-header { display: flex; justify-content: space-between; align-items: center; }
+    .sim-title { font-weight: 600; font-size: 14px; color: var(--text); }
+    code { font-family: var(--font-mono); font-size: 0.9em; color: var(--accent); }
+    footer {
+      border-top: 1px solid var(--border); padding: 2rem; text-align: center;
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../index.html" class="nav-logo"><span>⚡</span> SO</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../about.html">About</a></li>
+      <li><a href="../reports.html">Reports</a></li>
+      <li><a href="../projects/index.html">Projects</a></li>
+    </ul>
+  </nav>
+
+
+  <main>
+    <div class="meta">Week 11 — Capstone Design</div>
+    <h1>Capstone Project Component Exploration</h1>
+
+    <p>
+      Week 11 was spent deciding what the capstone would actually be, before any of it was written. My project is
+      <strong>AIROS</strong>, a real-time operating system kernel with a reinforcement learning scheduler. The
+      exploration work was scoping: what a kernel minimally needs, what the RL agent would learn from, and why the
+      whole thing would run in simulation rather than on a board.
+    </p>
+
+    <h2>Learning Objectives</h2>
+    <ul>
+      <li>Define the scope of a capstone that can be finished and measured.</li>
+      <li>Identify the components an RTOS kernel cannot do without.</li>
+      <li>Decide between hardware deployment and simulation, with a reason.</li>
+      <li>Formulate scheduling as a reinforcement learning problem.</li>
+      <li>Choose an evaluation method before building the thing being evaluated.</li>
+    </ul>
+
+    <h2>Why Simulation Rather Than Hardware</h2>
+    <p>
+      The obvious version of this project runs on the ESP32. I chose simulation instead, and the reason is
+      measurement rather than convenience.
+    </p>
+    <p>
+      The claim I wanted to test is that an adaptive scheduler beats a static one. Testing that means running three
+      schedulers against <em>the same workload</em> and comparing deadline misses. On real hardware, interrupt
+      timing, flash latency, and Wi-Fi activity all vary between runs, so a difference of a few percent could
+      easily be noise rather than the scheduler. In simulation the tick is deterministic: every scheduler sees an
+      identical task set, and any difference in the results belongs to the scheduler.
+    </p>
+    <p>
+      The cost of that decision is honest to state &mdash; results in simulation are evidence about the algorithm,
+      not proof about a physical device.
+    </p>
+
+    <h2>Kernel Components</h2>
+    <p>
+      Working out the minimum was the first exercise. A kernel that can schedule anything needs a description of a
+      task, somewhere to keep them, a way to switch between them, and a clock.
+    </p>
+    <ul>
+      <li><strong>Task Control Block</strong> &mdash; id, state, priority, period, deadline, worst-case execution
+          time, plus the runtime statistics the RL agent would later read.</li>
+      <li><strong>Context switch</strong> &mdash; saving and restoring a simulated ARM Cortex-M stack frame.</li>
+      <li><strong>Tick</strong> &mdash; a 1&nbsp;kHz timebase driving deadlines and task releases.</li>
+      <li><strong>IPC primitives</strong> &mdash; mutexes, semaphores, and message queues, since tasks that never
+          interact do not produce interesting scheduling problems.</li>
+    </ul>
+
+    <div class="code-block">#define AIROS_MAX_TASKS        16
+#define AIROS_STACK_SIZE       2048
+#define AIROS_TICK_RATE_HZ     1000
+#define AIROS_SCHED_EPOCH      50      /* ticks between RL scheduler updates */
+#define AIROS_PRIORITY_LEVELS  8</div>
+
+    <p>
+      One decision here has a consequence that shows up much later. The RL agent updates once per
+      <strong>epoch</strong> of 50 ticks, not once per tick. That keeps the learning cost away from the scheduling
+      hot path, but it also means a 5,000-tick run gives the agent only 100 opportunities to learn.
+    </p>
+
+    <h2>Priority Inheritance</h2>
+    <p>
+      Mutexes needed more than a locked flag. If a low-priority task holds a mutex that a high-priority task wants,
+      the high-priority task waits &mdash; and any medium-priority task can then preempt the holder, so the most
+      urgent task in the system is blocked by one that is not urgent at all. That is priority inversion, and it is
+      the failure that famously kept resetting the Mars Pathfinder lander.
+    </p>
+    <p>
+      The fix is priority inheritance: while a task holds a mutex someone more urgent is waiting on, it temporarily
+      runs at that higher priority. The TCB therefore needs both a <code>base_priority</code> and a current
+      <code>priority</code> &mdash; which turned out to be exactly the split the RL scheduler needed too.
+    </p>
+
+    <h2>Scheduling as a Learning Problem</h2>
+    <p>
+      Q-Learning needs three things defined: what the agent observes, what it can do, and how it knows it did well.
+    </p>
+    <ul>
+      <li><strong>State</strong> &mdash; three features per task: deadline <em>urgency</em>, historical
+          <em>miss rate</em>, and <em>burst ratio</em> (recent execution against worst-case). Each is normalised to
+          [0,1] and discretised into 4 bins, because a continuous state space needs function approximation and a
+          binned one only needs a table.</li>
+      <li><strong>Action</strong> &mdash; assign the task one of the 8 priority levels.</li>
+      <li><strong>Reward</strong> &mdash; <code>+1</code> for meeting a deadline, <code>-1</code> for missing one,
+          a small bonus for keeping utilisation under 80%, and a penalty for starving a task.</li>
+    </ul>
+
+    <div class="code-block">#define RL_ALPHA        0.1f    /* learning rate                   */
+#define RL_GAMMA        0.9f    /* discount factor                 */
+#define RL_EPSILON      0.15f   /* exploration rate (epsilon-greedy) */
+#define RL_STATE_BINS   4       /* bins per feature                */
+#define RL_STATE_DIM    3       /* urgency, miss_rate, burst_ratio */</div>
+
+    <p>
+      That gives a Q-table of 4&times;4&times;4 states by 8 actions per task &mdash; 512 entries each, small enough
+      to hold for all 16 tasks and still be plausible on a Cortex-M class device, which was the point of binning in
+      the first place.
+    </p>
+
+    <h2>Deciding How to Judge It</h2>
+    <p>
+      The last thing settled this week was the evaluation, deliberately before the scheduler existed so the target
+      could not be quietly moved afterwards. Three modes &mdash; Fixed Priority, Round Robin, and RL-Adaptive
+      &mdash; run against 8 heterogeneous tasks for 5,000 ticks, and the measure is deadline miss rate.
+    </p>
+    <p>
+      Fixed Priority is the honest baseline: it is what a real RTOS does, so beating Round Robin proves very little
+      and beating Fixed Priority would be the actual result.
+    </p>
+
+    <h2>Reflection</h2>
+    <p>
+      The most useful part of this week was writing down the success criterion first. It is uncomfortable in a way
+      that turned out to matter &mdash; once "beat Fixed Priority on deadline misses" is committed to, the
+      benchmark can return an answer I did not want, and week 12 is where it did exactly that.
+    </p>
+
+    <a href="../reports.html" class="back-link">&larr; Back to Reports</a>
+  </main>
+
+  <footer>
+    &copy; 2026 Sheldon Odhiambo — Gearbox Academy
+  </footer>
+
+</body>
+</html>

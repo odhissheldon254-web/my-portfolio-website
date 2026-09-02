@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Week 12 Report — Sheldon Odhiambo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f0e;
+      --surface: #141716;
+      --border: #1f2421;
+      --text: #e8ede9;
+      --muted: #6b7a6d;
+      --accent: #4ade80;
+      --accent-dim: rgba(74, 222, 128, 0.08);
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-sans: 'IBM Plex Sans', sans-serif;
+    }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: var(--font-sans); font-size: 15px; line-height: 1.6;
+    }
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,15,14,0.92); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 54px;
+    }
+    .nav-logo {
+      font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+      color: var(--accent); text-decoration: none;
+      display: flex; align-items: center; gap: 6px; letter-spacing: 0.04em;
+    }
+    .nav-links { display: flex; gap: 0; list-style: none; }
+    .nav-links a {
+      font-family: var(--font-mono); font-size: 12px; color: var(--muted);
+      text-decoration: none; padding: 6px 14px; border-radius: 4px;
+    }
+    .nav-links a:hover { color: var(--accent); background: var(--accent-dim); }
+
+    main { max-width: 800px; margin: 0 auto; padding: 4rem 2rem; }
+    .meta { font-family: var(--font-mono); font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 1rem; }
+    h1 { font-size: 2.5rem; font-weight: 600; margin-bottom: 1.5rem; letter-spacing: -0.02em; }
+    h2 { font-size: 1.25rem; font-weight: 600; margin: 2.5rem 0 1rem; color: var(--accent); display: flex; align-items: center; gap: 10px; }
+    h2::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    p { margin-bottom: 1.2rem; color: #b0b8b2; }
+    ul { margin-bottom: 1.5rem; padding-left: 1.2rem; list-style: none; }
+    li { margin-bottom: 0.5rem; position: relative; color: #b0b8b2; }
+    li::before { content: '>'; position: absolute; left: -1.2rem; color: var(--accent); font-family: var(--font-mono); }
+
+    .code-block {
+      background: #080a09; border: 1px solid var(--border); border-radius: 8px;
+      padding: 1.5rem; margin: 2rem 0; overflow-x: auto;
+      font-family: var(--font-mono); font-size: 13px; color: #d1d9d2; line-height: 1.5;
+      white-space: pre;
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--muted); text-decoration: none; font-family: var(--font-mono);
+      font-size: 12px; margin-top: 3rem; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+    .sim-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: 1.5rem; margin: 2rem 0; display: flex; flex-direction: column; gap: 1rem;
+    }
+    .sim-header { display: flex; justify-content: space-between; align-items: center; }
+    .sim-title { font-weight: 600; font-size: 14px; color: var(--text); }
+    code { font-family: var(--font-mono); font-size: 0.9em; color: var(--accent); }
+    footer {
+      border-top: 1px solid var(--border); padding: 2rem; text-align: center;
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../index.html" class="nav-logo"><span>⚡</span> SO</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../about.html">About</a></li>
+      <li><a href="../reports.html">Reports</a></li>
+      <li><a href="../projects/index.html">Projects</a></li>
+    </ul>
+  </nav>
+
+
+  <main>
+    <div class="meta">Week 12 — Build, Results &amp; Presentation</div>
+    <h1>Capstone Development and Final Presentation</h1>
+
+    <p>
+      Week 12 was building AIROS to the design set out in week 11, running the benchmark, and presenting it. The
+      kernel, the Q-Learning scheduler, and the simulation harness came to roughly 750 lines of C11. The benchmark
+      then returned a result that did not match what I expected, and working out why became the most useful part of
+      the project.
+    </p>
+
+    <h2>Learning Objectives</h2>
+    <ul>
+      <li>Implement the kernel, scheduler, and benchmark harness designed in week 11.</li>
+      <li>Run all three scheduling modes against an identical workload.</li>
+      <li>Interpret the measurements honestly, including unfavourable ones.</li>
+      <li>Trace an unexpected result back to a specific cause in the code.</li>
+      <li>Present the work, the reasoning, and the limitations.</li>
+    </ul>
+
+    <h2>What Was Built</h2>
+    <ul>
+      <li><code>kernel/</code> &mdash; TCB management, simulated Cortex-M context switching, mutexes with priority
+          inheritance, semaphores, and message queues.</li>
+      <li><code>scheduler/</code> &mdash; the Q-Learning agent: state extraction, binning, epsilon-greedy action
+          selection, and the Bellman update.</li>
+      <li><code>simulation/</code> &mdash; the three-mode benchmark harness with CSV export.</li>
+    </ul>
+
+    <p>
+      The Bellman update itself is four lines, which is a fair reflection of where the difficulty in this project
+      actually was &mdash; not the learning rule, but everything feeding it.
+    </p>
+
+    <div class="code-block">/* Q(s,a) <- Q(s,a) + alpha * [ r + gamma * max Q(s',a') - Q(s,a) ] */
+*q_cur += rl-&gt;alpha * (reward + rl-&gt;gamma * max_next - *q_cur);</div>
+
+    <h2>Benchmark Results</h2>
+    <p>
+      Three schedulers, 8 heterogeneous tasks, 5,000 ticks, identical workload:
+    </p>
+
+    <div class="code-block">Scheduler              Misses    Hits    Miss Rate
+-------------------------------------------------
+Fixed Priority            214    4,898       4.19%
+Round Robin               123    4,939       2.43%
+AIROS RL-Adaptive         242    4,919       4.69%</div>
+
+    <p>
+      <strong>The RL scheduler came last.</strong> It missed more deadlines than the static baseline it was built
+      to beat, and nearly twice as many as plain Round Robin. Since week 11 committed to "beat Fixed Priority on
+      deadline miss rate" as the success criterion, this run does not meet it.
+    </p>
+
+    <h2>Why: The Agent Never Finished Exploring</h2>
+    <p>
+      An epsilon-greedy agent takes a random action a fraction <em>epsilon</em> of the time, so that it discovers
+      options its current estimates would never choose. That exploration is not free &mdash; in this system a random
+      action means assigning a task a random priority, which sometimes means a missed deadline. It is supposed to
+      pay for itself as epsilon decays and the agent settles into what it has learned.
+    </p>
+    <p>
+      Mine decays too slowly for the length of the run. Epsilon starts at 0.15 and is multiplied by 0.995 once per
+      epoch &mdash; and an epoch is 50 ticks, so a 5,000-tick simulation contains only <strong>100 decay
+      steps</strong>:
+    </p>
+
+    <div class="code-block">tick     0:  epsilon = 0.150   (15.0% of priority decisions random)
+tick   501:  epsilon = 0.143   (14.3%)
+tick  2500:  epsilon = 0.117   (11.7%)
+tick  5000:  epsilon = 0.091   ( 9.1%)
+
+epsilon reaches its 0.01 floor at ~27,050 ticks
+                               = 5.4x longer than the benchmark runs</div>
+
+    <p>
+      So the agent is still choosing about one priority in eleven at random when the benchmark ends. It never
+      reaches the exploitation phase at all. The measurement is not of a converged adaptive scheduler; it is of an
+      agent still exploring, and the extra 28 misses over Fixed Priority are roughly the price of that exploration.
+    </p>
+    <p>
+      This also corrects something I had believed earlier. I had described the scheduler as converging around tick
+      501 &mdash; the arithmetic above shows epsilon is still 0.143 there, essentially its starting value. There was
+      no convergence at tick 501, and the reason I thought otherwise is that I read the reward curve flattening as
+      convergence when it was a still-exploring agent's average settling.
+    </p>
+
+    <h2>What Would Make This a Fair Test</h2>
+    <p>
+      The result is real, but the experiment does not test what it set out to test. Three changes would fix it, in
+      order of how much they would tell me:
+    </p>
+    <ul>
+      <li><strong>Run long enough to converge</strong> &mdash; 30,000 ticks rather than 5,000, so the agent actually
+          reaches its exploitation phase before being judged.</li>
+      <li><strong>Decay faster</strong> &mdash; 0.95 per epoch reaches the floor in about 2,700 ticks, which fits
+          inside the existing run.</li>
+      <li><strong>Report post-convergence separately</strong> &mdash; measure the warm-up and the settled phase as
+          two numbers, since a scheduler that pays a one-off learning cost and then outperforms is a genuinely
+          different result from one that simply loses.</li>
+    </ul>
+    <p>
+      Until one of those is run, the honest statement is: <em>on a 5,000-tick benchmark, the RL scheduler does not
+      beat a static priority scheduler, because it does not finish learning within the measurement window.</em>
+    </p>
+
+    <h2>Presentation</h2>
+    <p>
+      Presenting a result that contradicted my own claim was more useful than presenting a win. The question that
+      came back &mdash; whether the RL scheduler was worse or simply unfinished &mdash; is exactly the question the
+      epsilon schedule answers, and it is a question I would not have had a good answer to if the benchmark had
+      happened to come out favourably.
+    </p>
+
+    <h2>Reflection</h2>
+    <p>
+      The engineering lesson has little to do with reinforcement learning. Committing to the success criterion in
+      week 11, before the scheduler existed, is the only reason this result was interpretable. If I had decided
+      what counted as success after seeing the numbers, "Round Robin did best" would have been available as a
+      finding, and the interesting question about exploration would never have been asked.
+    </p>
+    <p>
+      The second lesson is that a hyperparameter and a benchmark length are not independent settings. Epsilon decay
+      of 0.995 is perfectly reasonable; a 5,000-tick run is perfectly reasonable; together they guarantee the agent
+      is judged before it is ready. Neither number looks wrong on its own, which is precisely why it took a
+      calculation rather than a code review to find.
+    </p>
+
+    <a href="../reports.html" class="back-link">&larr; Back to Reports</a>
+  </main>
+
+  <footer>
+    &copy; 2026 Sheldon Odhiambo — Gearbox Academy
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Week 10 Report — Sheldon Odhiambo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f0e;
+      --surface: #141716;
+      --border: #1f2421;
+      --text: #e8ede9;
+      --muted: #6b7a6d;
+      --accent: #4ade80;
+      --accent-dim: rgba(74, 222, 128, 0.08);
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-sans: 'IBM Plex Sans', sans-serif;
+    }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: var(--font-sans); font-size: 15px; line-height: 1.6;
+    }
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,15,14,0.92); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 54px;
+    }
+    .nav-logo {
+      font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+      color: var(--accent); text-decoration: none;
+      display: flex; align-items: center; gap: 6px; letter-spacing: 0.04em;
+    }
+    .nav-links { display: flex; gap: 0; list-style: none; }
+    .nav-links a {
+      font-family: var(--font-mono); font-size: 12px; color: var(--muted);
+      text-decoration: none; padding: 6px 14px; border-radius: 4px;
+    }
+    .nav-links a:hover { color: var(--accent); background: var(--accent-dim); }
+
+    main { max-width: 800px; margin: 0 auto; padding: 4rem 2rem; }
+    .meta { font-family: var(--font-mono); font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 1rem; }
+    h1 { font-size: 2.5rem; font-weight: 600; margin-bottom: 1.5rem; letter-spacing: -0.02em; }
+    h2 { font-size: 1.25rem; font-weight: 600; margin: 2.5rem 0 1rem; color: var(--accent); display: flex; align-items: center; gap: 10px; }
+    h2::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    p { margin-bottom: 1.2rem; color: #b0b8b2; }
+    ul { margin-bottom: 1.5rem; padding-left: 1.2rem; list-style: none; }
+    li { margin-bottom: 0.5rem; position: relative; color: #b0b8b2; }
+    li::before { content: '>'; position: absolute; left: -1.2rem; color: var(--accent); font-family: var(--font-mono); }
+
+    .code-block {
+      background: #080a09; border: 1px solid var(--border); border-radius: 8px;
+      padding: 1.5rem; margin: 2rem 0; overflow-x: auto;
+      font-family: var(--font-mono); font-size: 13px; color: #d1d9d2; line-height: 1.5;
+      white-space: pre;
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--muted); text-decoration: none; font-family: var(--font-mono);
+      font-size: 12px; margin-top: 3rem; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); }
+    .sim-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: 1.5rem; margin: 2rem 0; display: flex; flex-direction: column; gap: 1rem;
+    }
+    .sim-header { display: flex; justify-content: space-between; align-items: center; }
+    .sim-title { font-weight: 600; font-size: 14px; color: var(--text); }
+    code { font-family: var(--font-mono); font-size: 0.9em; color: var(--accent); }
+    footer {
+      border-top: 1px solid var(--border); padding: 2rem; text-align: center;
+      font-family: var(--font-mono); font-size: 11px; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../index.html" class="nav-logo"><span>⚡</span> SO</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../about.html">About</a></li>
+      <li><a href="../reports.html">Reports</a></li>
+      <li><a href="../projects/index.html">Projects</a></li>
+    </ul>
+  </nav>
+
+
+  <main>
+    <div class="meta">Week 10 — Access Control</div>
+    <h1>RFID Access Control Systems with ESP32</h1>
+
+    <p>
+      Week 10 took the card reading from week 9 and turned it into a decision. The reader moves to the ESP32, an
+      authorised list is introduced, and the system does something physical when a card is accepted. This is the
+      first project in the course where the code's output is a consequence rather than a message.
+    </p>
+
+    <h2>Learning Objectives</h2>
+    <ul>
+      <li>Move the MFRC522 from the Pico to the ESP32 and understand what changes.</li>
+      <li>Compare a scanned UID against a list of authorised cards.</li>
+      <li>Drive an output &mdash; LED, buzzer, or relay &mdash; based on that decision.</li>
+      <li>Keep the deny path as deliberate as the allow path.</li>
+      <li>Understand where UID-only access control stops being adequate.</li>
+    </ul>
+
+    <h2>Same Module, Different Pins</h2>
+    <p>
+      The MFRC522 does not care which microcontroller is on the other end of the SPI bus, so the module and the
+      protocol are unchanged. What changes is the pin map, because the ESP32 has its own default SPI pins.
+    </p>
+
+    <div class="code-block">MFRC522        ESP32 (VSPI default)
+---------      --------------------
+SDA  (SS)  --> GPIO 5
+SCK        --> GPIO 18
+MOSI       --> GPIO 23
+MISO       --> GPIO 19
+RST        --> GPIO 22
+3.3V       --> 3V3            <-- the ESP32 is a 3.3V part
+GND        --> GND</div>
+
+    <p>
+      Both boards being 3.3&nbsp;V is convenient here: the wiring is a direct swap. The reader is also happier on a
+      steady supply than on a long breadboard run, which is worth remembering when a module reads reliably on one
+      desk and intermittently on another.
+    </p>
+
+    <h2>The Access Decision</h2>
+    <p>
+      The logic is a comparison, and the honest way to write it is to make refusal the default. The LED and buzzer
+      stand in for a relay or solenoid; swapping the output does not change the structure.
+    </p>
+
+    <div class="code-block">#include &lt;SPI.h&gt;
+#include &lt;MFRC522.h&gt;
+
+#define SS_PIN     5
+#define RST_PIN    22
+#define GREEN_LED  15
+#define RED_LED    2
+#define BUZZER     4
+
+MFRC522 reader(SS_PIN, RST_PIN);
+
+// UIDs permitted to open the door
+const char *authorised[] = {
+  "A1B2C3D4",
+  "1A2B3C4D"
+};
+const int authorisedCount = sizeof(authorised) / sizeof(authorised[0]);
+
+void setup() {
+  Serial.begin(115200);
+  SPI.begin();
+  reader.PCD_Init();
+
+  pinMode(GREEN_LED, OUTPUT);
+  pinMode(RED_LED, OUTPUT);
+  pinMode(BUZZER, OUTPUT);
+
+  Serial.println("Access control ready.");
+}
+
+String readUid() {
+  String uid = "";
+  for (byte i = 0; i &lt; reader.uid.size; i++) {
+    if (reader.uid.uidByte[i] &lt; 0x10) uid += "0";
+    uid += String(reader.uid.uidByte[i], HEX);
+  }
+  uid.toUpperCase();
+  return uid;
+}
+
+bool isAuthorised(String uid) {
+  for (int i = 0; i &lt; authorisedCount; i++) {
+    if (uid == authorised[i]) return true;
+  }
+  return false;                       // deny unless proven otherwise
+}
+
+void grant() {
+  Serial.println("ACCESS GRANTED");
+  digitalWrite(GREEN_LED, HIGH);
+  delay(2000);                        // door held open
+  digitalWrite(GREEN_LED, LOW);
+}
+
+void deny() {
+  Serial.println("ACCESS DENIED");
+  digitalWrite(RED_LED, HIGH);
+  tone(BUZZER, 300, 500);
+  delay(1000);
+  digitalWrite(RED_LED, LOW);
+}
+
+void loop() {
+  if (!reader.PICC_IsNewCardPresent()) return;
+  if (!reader.PICC_ReadCardSerial())   return;
+
+  String uid = readUid();
+  Serial.print("Card: ");
+  Serial.println(uid);
+
+  if (isAuthorised(uid)) {
+    grant();
+  } else {
+    deny();
+  }
+
+  reader.PICC_HaltA();                // stop talking to this card
+}</div>
+
+    <p>
+      <code>PICC_HaltA()</code> at the end is easy to leave out and causes a confusing bug when it is missing: the
+      card stays selected, so a single presentation keeps re-triggering the door for as long as it is held there.
+    </p>
+
+    <h2>Why the Deny Path Matters</h2>
+    <p>
+      Writing <code>isAuthorised</code> to return <code>false</code> at the end rather than <code>true</code> is a
+      deliberate choice. If the list is empty, if the UID failed to read, or if a future edit adds a branch that
+      falls through, the system refuses. A design that fails open is one where a bug becomes an unlocked door.
+    </p>
+    <p>
+      The same reasoning applies to logging. Printing every scan, granted or denied, means an unexplained entry can
+      be traced afterwards. A system that only records its successes cannot answer the question people actually ask
+      after an incident.
+    </p>
+
+    <h2>Honest Limits of This Design</h2>
+    <p>
+      This project works and demonstrates the whole input&nbsp;&rarr;&nbsp;decision&nbsp;&rarr;&nbsp;output chain,
+      but it should not be mistaken for a secure lock:
+    </p>
+    <ul>
+      <li>The UID is broadcast in the clear and can be cloned onto a writable card.</li>
+      <li>The authorised list is compiled into the firmware, so adding or removing a card means reflashing.</li>
+      <li>There is no record of who entered, only what the serial monitor happened to show at the time.</li>
+      <li>Cutting power to the ESP32 stops the reader entirely &mdash; what the door does then is a hardware
+          decision, not a software one.</li>
+    </ul>
+    <p>
+      The real fix for the first point is MIFARE sector authentication, where the card proves it holds a key rather
+      than merely announcing a number. The rest are answered by moving the card list off-device and keeping an
+      audit log.
+    </p>
+
+    <h2>Reflection</h2>
+    <p>
+      This was the week the course stopped being about making hardware respond and started being about what happens
+      when it responds incorrectly. A blinking LED that misreads a button is a nuisance. A door that misreads a
+      card is a different category of mistake, and the code has to be written with that asymmetry in mind.
+    </p>
+
+    <a href="../reports.html" class="back-link">&larr; Back to Reports</a>
+  </main>
+
+  <footer>
+    &copy; 2026 Sheldon Odhiambo — Gearbox Academy
+  </footer>
+
+</body>
+</html>

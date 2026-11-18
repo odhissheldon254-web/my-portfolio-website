@@ -101,7 +101,16 @@
     <h1>AIROS: Adaptive Intelligent RTOS</h1>
     
     <p>
-      AIROS is a simulated Real-Time Operating System (RTOS) kernel enhanced with a Q-Learning reinforcement learning scheduler. It dynamically adapts task priorities at runtime based on deadline history, urgency, and CPU utilisation.
+      AIROS is a simulated <strong>preemptive</strong> Real-Time Operating System kernel with three interchangeable
+      schedulers &mdash; Fixed Priority, Round Robin, and a Q-Learning reinforcement learning agent that adapts task
+      priorities at runtime from deadline history, urgency and execution-burst statistics.
+    </p>
+    <p>
+      <strong>The finding is negative, and that is the result.</strong> On a correctly preemptive simulator with
+      deadlines counted per job, rate-monotonic Fixed Priority beats the learned scheduler decisively &mdash; as
+      Liu &amp; Layland's optimality proof says it should for periodic task sets of this shape. An earlier version of
+      this project claimed the opposite; that claim came from a harness in which execution time never occupied the
+      CPU, and it did not survive the harness being fixed.
     </p>
 
     <div class="sim-card">
@@ -125,49 +134,114 @@
 
     <h2>Reinforcement Learning Scheduler</h2>
     <p>
-      The real innovation lies in the RL scheduler. Instead of relying on static priorities set at compile time, the Q-Learning agent observes system state (deadline urgency, miss rate, burst ratio) and assigns priority dynamically using the Bellman equation.
+      Instead of relying on static priorities set at compile time, the Q-Learning agent observes system state
+      (deadline urgency, miss rate, burst ratio), discretises it into 64 states per task, and assigns one of 8
+      priority levels using the Bellman update. The policy is &epsilon;-greedy with random tie-breaking, warm-started
+      from the static rate-monotonic assignment so it begins as fixed-priority scheduling and learns deviations.
     </p>
     <p>
-      The agent receives a +1 reward for meeting a deadline and a -1 penalty for missing it, alongside efficiency bonuses.
+      Reward is measured over the whole epoch an action was in force &mdash; (hits &minus; misses) normalised to
+      [&minus;1, +1], with a penalty for starving a task beyond twice its own period. The earlier reward read a
+      single instantaneous flag, which scored a task that missed forty deadlines and then met one identically to a
+      task that simply met one.
     </p>
 
     <h2>Benchmark Results</h2>
     <p>
-      The system was simulated over 5,000 ticks with 8 heterogeneous tasks. The RL scheduler successfully converges to a hard real-time standard (&lt;5% miss rate) after its initial exploration phase.
+      These numbers replace every earlier figure in this project. The original harness ran a task for exactly one
+      tick regardless of its execution time, so nothing ever occupied the CPU and nothing was ever preempted &mdash;
+      it measured a queueing policy, not a scheduler. The results below come from a rebuilt preemptive simulator
+      over 20,000 ticks, verified across five random seeds.
+    </p>
+
+    <h2>Is the Workload Even Schedulable?</h2>
+    <p>
+      The first thing the rebuilt simulator revealed: the documented task set demands <strong>132% of the CPU at
+      worst case and 102% on average</strong>, against a Liu-Layland bound of 0.729. It is infeasible &mdash; deadline
+      misses are mathematically forced, not a scheduling failure. That was invisible while execution time was free.
+      Both regimes are now measured.
+    </p>
+
+    <h2>Overload Regime (U = 1.02)</h2>
+    <table>
+      <thead><tr><th>Scheduler</th><th>Misses</th><th>Miss Rate</th><th>Critical Misses</th><th>Preemptions</th></tr></thead>
+      <tbody>
+        <tr><td><strong style="color:var(--accent);">Fixed Priority</strong></td><td><strong style="color:var(--accent);">50</strong></td><td><strong style="color:var(--accent);">0.99%</strong></td><td><strong style="color:var(--accent);">4</strong></td><td>1,898</td></tr>
+        <tr><td>AIROS RL-Adaptive</td><td>457</td><td>9.01%</td><td>436</td><td>1,597</td></tr>
+        <tr><td>Round Robin</td><td>1,260</td><td>24.83%</td><td>1,257</td><td>14,139</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Feasible Regime (U = 0.53)</h2>
+    <table>
+      <thead><tr><th>Scheduler</th><th>Misses</th><th>Miss Rate</th><th>Critical Misses</th></tr></thead>
+      <tbody>
+        <tr><td><strong style="color:var(--accent);">Fixed Priority</strong></td><td><strong style="color:var(--accent);">0</strong></td><td><strong style="color:var(--accent);">0.00%</strong></td><td><strong style="color:var(--accent);">0</strong></td></tr>
+        <tr><td>AIROS RL-Adaptive</td><td>2</td><td>0.08%</td><td>2</td></tr>
+        <tr><td>Round Robin</td><td>14</td><td>0.54%</td><td>14</td></tr>
+      </tbody>
+    </table>
+
+    <h2>The Honest Conclusion</h2>
+    <p>
+      <strong>Fixed Priority wins decisively in both regimes, and the RL scheduler loses.</strong> This is the
+      theoretically expected outcome rather than a surprise: Liu &amp; Layland proved rate-monotonic priority
+      assignment is <em>optimal</em> among fixed-priority schedulers for feasible periodic task sets. In the feasible
+      regime there is simply nothing left to win &mdash; Fixed Priority already achieves zero misses, so a learned
+      policy can only add noise, and it does.
+    </p>
+    <p>
+      The overload regime is more revealing. Under overload something must be sacrificed, and the per-task breakdown
+      shows the two schedulers making opposite choices:
     </p>
 
     <table>
-      <thead>
-        <tr>
-          <th>Scheduler</th>
-          <th>Deadline Misses</th>
-          <th>Deadline Hits</th>
-          <th>Miss Rate</th>
-        </tr>
-      </thead>
+      <thead><tr><th>Task</th><th>Critical</th><th>Fixed Priority</th><th>RL-Adaptive</th></tr></thead>
       <tbody>
-        <tr>
-          <td>Fixed Priority</td>
-          <td>214</td>
-          <td>4,898</td>
-          <td>4.19%</td>
-        </tr>
-        <tr>
-          <td>Round Robin</td>
-          <td>123</td>
-          <td>4,939</td>
-          <td>2.43%</td>
-        </tr>
-        <tr>
-          <td><strong style="color:var(--accent);">AIROS RL-Adaptive</strong></td>
-          <td><strong style="color:var(--accent);">242</strong></td>
-          <td><strong style="color:var(--accent);">4,919</strong></td>
-          <td><strong style="color:var(--accent);">4.69%</strong></td>
-        </tr>
+        <tr><td>CONTROL_LOOP</td><td>yes</td><td>0</td><td>22</td></tr>
+        <tr><td>SENSOR_READ</td><td>yes</td><td>0</td><td>75</td></tr>
+        <tr><td>FAULT_MONITOR</td><td>yes</td><td>4</td><td>339</td></tr>
+        <tr><td>UI_UPDATE</td><td>&mdash;</td><td>20</td><td>6</td></tr>
+        <tr><td>SELF_TEST</td><td>&mdash;</td><td>26</td><td>1</td></tr>
       </tbody>
     </table>
-    
-    <p style="font-size: 13px;"><em>Note: The RL scheduler converges at tick 501. The higher initial miss count is due to early-epoch exploration (epsilon-greedy policy) as the agent discovers the optimal scheduling policy.</em></p>
+
+    <p>
+      Fixed Priority degrades gracefully: it sacrifices the long-period background work and protects the control
+      loop and sensor path almost perfectly. The RL agent does the opposite, spending 436 of its 457 misses on
+      safety-critical tasks to protect a UI refresh and a self-test. In a vehicle or a medical device that is not
+      merely worse &mdash; it is dangerous. The cause is &epsilon;-greedy exploration: the agent starts warm-started
+      onto a policy that is already near-optimal, so exploration can only move it away, and at 102% load there is no
+      slack to absorb a bad decision.
+    </p>
+    <p>
+      Rate-monotonic orders tasks purely by period, so it structurally cannot protect a long-period critical task
+      from a short-period trivial one. This task set does not have that property &mdash; criticality and rate happen
+      to correlate &mdash; which is exactly why it is unbeatable here. A workload where criticality is
+      <em>anti-correlated</em> with period is the problem class where a learned scheduler has real headroom, and is
+      the honest next experiment.
+    </p>
+
+    <h2>Priority Inheritance, Finally Tested</h2>
+    <p>
+      The kernel shipped mutexes with priority inheritance, semaphores and message queues &mdash; and the benchmark
+      never called any of them, so the inheritance branch had never once executed. Adding non-blocking
+      <code>mutex_try_acquire()</code> / <code>mutex_release()</code> entry points made the classic three-task
+      inversion scenario measurable &mdash; the same failure mode that kept resetting Mars Pathfinder in 1997:
+    </p>
+
+    <table>
+      <thead><tr><th>Configuration</th><th>HIGH task blocked for</th></tr></thead>
+      <tbody>
+        <tr><td>Without priority inheritance</td><td>80 ticks</td></tr>
+        <tr><td><strong style="color:var(--accent);">With priority inheritance</strong></td><td><strong style="color:var(--accent);">20 ticks</strong></td></tr>
+      </tbody>
+    </table>
+
+    <p style="font-size: 13px;"><em>The 20 ticks is exactly the remaining critical section &mdash; bounded, as the
+    protocol requires. The 80 is that same 20 plus MEDIUM's entire 60 ticks of unrelated work: the unbounded
+    component that grows with however much medium-priority work happens to exist. The kernel's implementation is
+    correct; nothing had ever demonstrated it.</em></p>
 
     <a href="index.html" class="back-link">← Back to Projects</a>
   </main>

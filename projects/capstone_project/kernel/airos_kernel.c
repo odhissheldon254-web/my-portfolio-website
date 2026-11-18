@@ -225,6 +225,36 @@ void mutex_unlock(Mutex* m) {
     }
 }
 
+/* ── Non-blocking mutex acquire, with optional priority inheritance ──
+   Returns 1 on acquisition, 0 if held elsewhere. When the caller is
+   blocked and inheritance is enabled, the current holder is temporarily
+   raised to the caller's priority, so a medium-priority task cannot
+   preempt it and extend the blocking time without bound. This is the
+   protocol that makes worst-case blocking analysable; before this entry
+   point existed, the inheritance branch in mutex_lock() was never
+   executed by any test in the project. */
+int mutex_try_acquire(Mutex* m, TCB* task, int use_inheritance) {
+    if (!m->locked) {
+        m->locked = 1;
+        m->owner  = task;
+        return 1;
+    }
+    if (m->owner == task) return 1;          /* already ours */
+
+    if (use_inheritance && m->owner && task->priority < m->owner->priority)
+        m->owner->priority = task->priority; /* holder inherits caller's */
+
+    return 0;
+}
+
+/* ── Release a mutex taken with mutex_try_acquire ── */
+void mutex_release(Mutex* m, TCB* task) {
+    if (!m->locked || m->owner != task) return;
+    m->owner->priority = m->owner->base_priority;  /* drop any inherited */
+    m->locked = 0;
+    m->owner  = NULL;
+}
+
 /* ── Semaphore ── */
 void semaphore_init(Semaphore* s, int32_t initial) {
     s->count      = initial;

@@ -12,15 +12,18 @@
      s2 = burst_ratio  (avg_burst / worst_case_et)
    
    Action space: assign priority 0–7
-   
-   Reward:
-     +1.0  deadline met
-     -1.0  deadline missed
-     +0.3  bonus if CPU utilization < 80% (efficiency)
-     -0.5  penalty if starvation detected (task waiting > 2× period)
-   
+
+   Reward (measured over the epoch the action was in force):
+     (hits − misses) / (hits + misses + 1)   → normalised to [−1, +1]
+     −0.5  if starved (task waiting > 2× its own period)
+
    Update rule (Q-Learning / Bellman):
      Q(s,a) ← Q(s,a) + α[r + γ·max_a'Q(s',a') − Q(s,a)]
+     where s' is the state observed at the NEXT epoch, i.e. a state that
+     actually resulted from taking a in s.
+
+   Policy: ε-greedy with random tie-breaking, warm-started from the
+   static rate-monotonic priority assignment.
    ───────────────────────────────────────────── */
 
 static uint32_t rand_state = 12345;
@@ -77,6 +80,11 @@ void rl_scheduler_init(RLScheduler* rl) {
     rl->epoch_count      = 0;
     rl->total_updates    = 0;
     rl->cumulative_reward = 0.0f;
+    memset(rl->last_state,  0, sizeof(rl->last_state));
+    memset(rl->last_action, 0, sizeof(rl->last_action));
+    memset(rl->has_last,    0, sizeof(rl->has_last));
+    memset(rl->last_hits,   0, sizeof(rl->last_hits));
+    memset(rl->last_misses, 0, sizeof(rl->last_misses));
 
     /* Optimistic initialization — encourage exploration */
     for (int t = 0; t < AIROS_MAX_TASKS; t++)
@@ -85,6 +93,33 @@ void rl_scheduler_init(RLScheduler* rl) {
                 for (int s2 = 0; s2 < RL_STATE_BINS; s2++)
                     for (int a = 0; a < RL_ACTIONS; a++)
                         rl->q_table[t][s0][s1][s2][a] = 0.5f;
+}
+
+/* ── Warm start from the static priority assignment ──
+   A uniform Q-table means every argmax is a tie, and a first-index tie
+   break hands every task priority 0 — at which point the selector always
+   runs task 0 and everything else starves. Seeding each task's row so
+   that Q is highest at its rate-monotonic base priority and falls off
+   linearly with distance means the greedy policy STARTS as fixed-priority
+   scheduling and learns deviations from it, rather than learning a
+   scheduler from scratch in 500 epochs. This is standard practice for
+   RL in systems: bootstrap from a known-good controller. */
+void rl_scheduler_warmstart(RLScheduler* rl, KernelCB* kernel) {
+    for (int i = 0; i < kernel->task_count; i++) {
+        int base = kernel->task_list[i]->base_priority;
+        if (base >= RL_ACTIONS) base = RL_ACTIONS - 1;
+
+        for (int s0 = 0; s0 < RL_STATE_BINS; s0++)
+            for (int s1 = 0; s1 < RL_STATE_BINS; s1++)
+                for (int s2 = 0; s2 < RL_STATE_BINS; s2++)
+                    for (int a = 0; a < RL_ACTIONS; a++) {
+                        int d = a - base;
+                        if (d < 0) d = -d;
+                        /* 1.0 at the base priority → 0.5 at the far end */
+                        rl->q_table[i][s0][s1][s2][a] =
+                            1.0f - 0.5f * ((float)d / (float)(RL_ACTIONS - 1));
+                    }
+    }
 }
 
 /* ── Q-Learning Update (Bellman equation) ── */
@@ -105,26 +140,45 @@ static void _q_update(RLScheduler* rl, int task_id,
     rl->cumulative_reward += reward;
 }
 
-/* ── Compute Reward for Task ── */
-static float _compute_reward(TCB* t, KernelCB* kernel) {
-    float reward = t->reward_signal;   /* +1 hit / -1 miss set by kernel */
-    t->reward_signal = 0.0f;           /* consume the signal */
+/* ── Compute Reward for Task ──
+   Measured over the epoch that just elapsed, not from a single instant.
+   t->reward_signal only ever held the LAST hit/miss written to it, so a
+   task that missed forty deadlines and then met one looked identical to a
+   task that met one. Differencing the kernel's own hit/miss counters
+   against the previous epoch's snapshot credits the action with
+   everything that actually happened while it was in force. */
+static float _compute_reward(RLScheduler* rl, int idx, TCB* t, KernelCB* kernel) {
+    uint32_t dh = t->deadline_hits   - rl->last_hits[idx];
+    uint32_t dm = t->deadline_misses - rl->last_misses[idx];
+    rl->last_hits[idx]   = t->deadline_hits;
+    rl->last_misses[idx] = t->deadline_misses;
+    t->reward_signal     = 0.0f;   /* consume any instantaneous signal */
 
-    /* Efficiency bonus */
-    float util = (kernel->task_count > 0)
-        ? (float)kernel->context_switch_count / (float)(kernel->tick_count + 1)
-        : 0.0f;
-    if (util < 0.8f) reward += 0.3f;
+    /* Normalised deadline performance over the interval, in [-1, +1] */
+    float reward = ((float)dh - (float)dm) / ((float)(dh + dm) + 1.0f);
 
-    /* Starvation penalty */
-    uint32_t wait = kernel->tick_count - t->release_tick;
+    /* Starvation penalty: a task held off for more than two of its own
+       periods is being harmed regardless of its deadline arithmetic.
+       NOTE: release_tick can sit in the FUTURE (a blocked task's next
+       release), so the subtraction must be guarded — as unsigned it
+       wrapped to ~4e9 and fired this penalty on essentially every task,
+       every epoch, which made the starvation signal pure noise. */
+    uint32_t wait = (kernel->tick_count > t->release_tick)
+                  ? (kernel->tick_count - t->release_tick) : 0u;
     if (t->period_ms > 0 && wait > 2 * t->period_ms)
         reward -= 0.5f;
 
     return reward;
 }
 
-/* ── Main Update Pass (called every AIROS_SCHED_EPOCH ticks) ── */
+/* ── Main Update Pass (called every AIROS_SCHED_EPOCH ticks) ──
+   Each task's Q-table is updated once per epoch using the transition
+   that actually occurred between the *previous* epoch's decision and
+   now: (last_state[i], last_action[i]) -> reward accrued since then ->
+   current_state. That current_state then becomes the state we choose
+   the next action from, and is stashed as last_state[i] for the epoch
+   after this one. This is what makes it a real one-step TD update
+   instead of bootstrapping a state off of itself. */
 void rl_scheduler_update(RLScheduler* rl, KernelCB* kernel) {
     rl->epoch_count++;
 
@@ -132,37 +186,61 @@ void rl_scheduler_update(RLScheduler* rl, KernelCB* kernel) {
         TCB* t = kernel->task_list[i];
         if (t->state == TASK_DEAD) continue;
 
-        int s0, s1, s2;
-        _extract_state(t, kernel->tick_count, &s0, &s1, &s2);
+        int cs0, cs1, cs2;
+        _extract_state(t, kernel->tick_count, &cs0, &cs1, &cs2);
 
-        float reward = _compute_reward(t, kernel);
+        float reward = _compute_reward(rl, i, t, kernel);
 
-        /* Current action = current priority */
-        int action = t->priority;
-        if (action >= RL_ACTIONS) action = RL_ACTIONS - 1;
+        /* Update using the PRIOR epoch's (state, action) -> this epoch's
+           state as s'. Skipped on a task's first epoch, since there is
+           no prior transition yet to credit. */
+        if (rl->has_last[i]) {
+            _q_update(rl, i,
+                      rl->last_state[i][0], rl->last_state[i][1], rl->last_state[i][2],
+                      rl->last_action[i],
+                      reward,
+                      cs0, cs1, cs2);
+        }
 
-        /* Next state (same task, post-reward state) */
-        int ns0, ns1, ns2;
-        _extract_state(t, kernel->tick_count, &ns0, &ns1, &ns2);
-
-        _q_update(rl, i, s0, s1, s2, action, reward, ns0, ns1, ns2);
-
-        /* ── ε-greedy action selection → new priority ── */
+        /* ── ε-greedy action selection → new priority, chosen from the
+           CURRENT state (cs), which is what the update above just
+           treated as s' ── */
         int new_priority;
         if (_randf() < rl->epsilon) {
             /* Explore: random priority */
             new_priority = _rand() % RL_ACTIONS;
         } else {
-            /* Exploit: best Q-value action */
-            float best_q = -1e9f;
-            new_priority = t->base_priority;
+            /* Exploit: best Q-value action, with RANDOM tie-breaking.
+               Deterministic first-index tie breaking is what collapsed the
+               old policy: untouched cells all hold the same value, argmax
+               always returned action 0, every task was handed priority 0,
+               and the selector then ran whichever task sat first in the
+               list while the rest starved. Reservoir-sampling among ties
+               keeps the policy spread out until the Q-values genuinely
+               separate. */
+            float best_q  = -1e9f;
+            int   n_ties  = 0;
+            new_priority  = t->base_priority;
             for (int a = 0; a < RL_ACTIONS; a++) {
-                float q = rl->q_table[i][ns0][ns1][ns2][a];
-                if (q > best_q) { best_q = q; new_priority = a; }
+                float q = rl->q_table[i][cs0][cs1][cs2][a];
+                float d = q - best_q;
+                if (d > 1e-6f) {                 /* strictly better */
+                    best_q = q; new_priority = a; n_ties = 1;
+                } else if (d > -1e-6f) {         /* tied */
+                    n_ties++;
+                    if ((_rand() % (uint32_t)n_ties) == 0) new_priority = a;
+                }
             }
         }
         t->priority = (uint8_t)new_priority;
-        t->q_value  = rl->q_table[i][ns0][ns1][ns2][new_priority];
+        t->q_value  = rl->q_table[i][cs0][cs1][cs2][new_priority];
+
+        /* Stash this epoch's state/action as "last" for next epoch's update */
+        rl->last_state[i][0] = cs0;
+        rl->last_state[i][1] = cs1;
+        rl->last_state[i][2] = cs2;
+        rl->last_action[i]   = new_priority;
+        rl->has_last[i]      = 1;
     }
 
     /* Decay epsilon (reduce exploration over time → converge) */

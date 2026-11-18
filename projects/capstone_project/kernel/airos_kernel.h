@@ -12,7 +12,13 @@
 #define AIROS_MAX_TASKS        16
 #define AIROS_STACK_SIZE       2048
 #define AIROS_TICK_RATE_HZ     1000
-#define AIROS_SCHED_EPOCH      50      /* ticks between RL scheduler updates */
+/* Ticks between RL scheduler updates. Must be no coarser than the
+   shortest deadline in the workload (CONTROL_LOOP = 10 ticks) or the
+   agent cannot react inside a deadline window at all — at 50 it was
+   making one decision per five missed control deadlines. */
+#ifndef AIROS_SCHED_EPOCH
+#define AIROS_SCHED_EPOCH      10
+#endif
 #define AIROS_PRIORITY_LEVELS  8
 
 /* Task states */
@@ -105,6 +111,16 @@ void     airos_task_resume(TCB* task);
 void     mutex_init(Mutex* m);
 void     mutex_lock(Mutex* m);
 void     mutex_unlock(Mutex* m);
+
+/* Non-blocking variants, usable from a tick-driven scheduler simulation.
+   mutex_try_acquire() returns 1 if the caller now owns the mutex, or 0 if
+   it is held by someone else — in which case, when use_inheritance is set,
+   the holder inherits the caller's priority for the duration of the
+   critical section (priority inheritance protocol). This is the code path
+   that prevents unbounded priority inversion; before these existed the
+   inheritance logic in mutex_lock() was never executed by any test. */
+int      mutex_try_acquire(Mutex* m, TCB* task, int use_inheritance);
+void     mutex_release(Mutex* m, TCB* task);
 
 void     semaphore_init(Semaphore* s, int32_t initial);
 void     semaphore_wait(Semaphore* s);

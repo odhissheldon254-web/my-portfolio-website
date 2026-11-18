@@ -8,9 +8,18 @@
 
 ## 📌 Project Overview
 
-AIROS is a **simulated Real-Time Operating System (RTOS) kernel** enhanced with a **Q-Learning reinforcement learning scheduler**. The system dynamically adapts task priorities at runtime based on deadline history, urgency, and CPU utilisation — outperforming traditional static schedulers in mixed-criticality real-time workloads.
+AIROS is a **simulated preemptive Real-Time Operating System (RTOS) kernel** with three interchangeable schedulers — Fixed Priority, Round Robin, and a **Q-Learning reinforcement learning agent** that adapts task priorities at runtime from deadline history, urgency and execution-burst statistics.
 
-This project was developed as a capstone to demonstrate the feasibility of **applying reinforcement learning to OS-level scheduling** in resource-constrained embedded environments (ARM Cortex-M class targets).
+This project was developed as a capstone to test the feasibility of **applying reinforcement learning to OS-level scheduling** in resource-constrained embedded environments (ARM Cortex-M class targets).
+
+**The finding is negative, and that is the result.** On a correctly preemptive
+simulator with deadlines counted per job, rate-monotonic Fixed Priority beats the
+learned scheduler decisively — as Liu & Layland's optimality proof predicts it
+should for periodic task sets of this shape. An earlier version of this project
+reported the opposite; that claim came from a harness in which execution time
+never occupied the CPU, and it does not survive the harness being fixed. The
+analysis of *why* RL loses here, and the specific problem class where it could
+still win, is in the Benchmark Results section.
 
 ---
 
@@ -38,9 +47,9 @@ AIROS_project/
 | Feature | Details |
 |---|---|
 | **Task Management** | Up to 16 tasks, TCB with full runtime stats |
-| **Scheduling** | Fixed Priority (baseline) + RL-Adaptive |
+| **Scheduling** | Preemptive: Fixed Priority, Round Robin, RL-Adaptive |
 | **Context Switch** | Simulated ARM Cortex-M stack frame (xPSR, PC, LR, R0–R12) |
-| **IPC Primitives** | Mutex (with priority inheritance), Semaphore, Message Queue |
+| **IPC Primitives** | Mutex (priority inheritance, **measured**), Semaphore, Message Queue |
 | **Deadline Tracking** | Per-task deadline hit/miss counters with reward signals |
 | **Periodic Tasks** | Automatic re-release at task period boundaries |
 
@@ -53,7 +62,8 @@ AIROS_project/
 | **Exploration Rate (ε)** | 0.15 → decays to 0.01 |
 | **State Space** | 3 features × 4 bins = 64 states per task |
 | **Action Space** | 8 priority levels |
-| **Reward Signal** | +1.0 deadline met, −1.0 miss, +0.3 efficiency bonus, −0.5 starvation |
+| **Reward Signal** | (hits − misses) / (hits + misses + 1) over the epoch, −0.5 if starved |
+| **Policy** | ε-greedy with random tie-breaking, warm-started from rate-monotonic |
 
 ### State Features
 1. **Urgency** — normalized time-to-deadline ratio
@@ -64,30 +74,145 @@ AIROS_project/
 
 ## 📊 Benchmark Results
 
-Simulation over **5,000 ticks** with **8 heterogeneous tasks** (hard RT, soft RT, background):
+> **These numbers replace every earlier figure in this project.** The original
+> harness did not simulate CPU contention (see "Harness rebuild" below), so its
+> results described a queueing policy rather than a scheduler. Everything below
+> comes from the v2 preemptive simulator, 20,000 ticks, verified across five
+> random seeds.
 
-| Scheduler | Deadline Misses | Deadline Hits | Miss Rate | RL Reward |
-|---|---|---|---|---|
-| Fixed Priority | 214 | 4,898 | 4.19% | — |
-| Round Robin | 123 | 4,939 | 2.43% | — |
-| **AIROS RL-Adaptive** | **242** | **4,919** | **4.69%** | **0.3883** |
+### Is the workload even schedulable?
 
-> ⚠️ The RL scheduler shows higher raw miss count due to early-phase exploration. It **converges at tick 501** (miss rate < 5%) and accumulates positive reward (+0.39), demonstrating that the agent is learning a policy that balances deadline adherence with CPU efficiency.
+The task set as originally documented demands **132% of the CPU at worst case
+and 102% on average**, against a Liu-Layland bound of 0.729 for seven tasks. It
+is infeasible — deadline misses are mathematically forced, not a scheduling
+failure. This was invisible while execution time was free. Both regimes are now
+benchmarked:
 
-### Task Workload Profile
+| Regime | U (worst) | U (avg) | Meaning |
+|---|---|---|---|
+| **OVERLOAD** (as documented) | 1.320 | 1.022 | Demand exceeds the CPU. The question is *which* deadlines are sacrificed. |
+| **FEASIBLE** (periods scaled) | 0.688 | 0.531 | Under the RM bound; a correct scheduler should approach zero misses. |
 
-| Task | Priority | Period (ms) | Deadline (ms) | Type |
-|---|---|---|---|---|
-| CONTROL_LOOP | 0 (highest) | 10 | 10 | Hard RT |
-| FAULT_MONITOR | 1 | 15 | 15 | Hard RT / Safety |
-| SENSOR_READ | 1 | 20 | 20 | Hard RT |
-| COMM_TX | 2 | 50 | 50 | Soft RT |
-| DATA_LOGGER | 3 | 100 | 100 | Background |
-| UI_UPDATE | 4 | 200 | 200 | Low priority |
-| SELF_TEST | 5 | 500 | 500 | Maintenance |
-| IDLE | 7 (lowest) | 1 | 1 | Idle |
+### OVERLOAD regime
+
+| Scheduler | Misses | Miss rate | Critical misses | Avg response | Preemptions |
+|---|---|---|---|---|---|
+| **Fixed Priority** | **50** | **0.99%** | **4** | 11.90 | 1,898 |
+| AIROS RL-Adaptive | 457 | 9.01% | 436 | 12.74 | 1,597 |
+| Round Robin | 1,260 | 24.83% | 1,257 | 15.96 | 14,139 |
+
+### FEASIBLE regime
+
+| Scheduler | Misses | Miss rate | Critical misses |
+|---|---|---|---|
+| **Fixed Priority** | **0** | **0.00%** | **0** |
+| AIROS RL-Adaptive | 2 | 0.08% | 2 |
+| Round Robin | 14 | 0.54% | 14 |
+
+### The honest conclusion
+
+**Fixed Priority wins decisively in both regimes, and the RL scheduler loses.**
+Every earlier result claiming otherwise was an artefact of a harness in which
+execution time did not occupy the processor.
+
+This is the theoretically expected outcome, not a surprise: Liu & Layland proved
+rate-monotonic priority assignment is *optimal* among fixed-priority schedulers
+for feasible periodic task sets. In the FEASIBLE regime there is nothing left to
+win — Fixed Priority already achieves zero misses, so a learned policy can only
+add noise, and it does (2 misses, both on a safety-critical task).
+
+The overload regime is more damning, and the per-task breakdown shows why:
+
+| Task | Critical | Fixed Priority | RL-Adaptive |
+|---|---|---|---|
+| CONTROL_LOOP | ✔ | 0 | 22 |
+| SENSOR_READ | ✔ | 0 | 75 |
+| FAULT_MONITOR | ✔ | 4 | 339 |
+| UI_UPDATE | | 20 | 6 |
+| SELF_TEST | | 26 | 1 |
+
+Under overload, Fixed Priority degrades *gracefully*: it sacrifices UI_UPDATE and
+SELF_TEST — the long-period, non-critical background work — and protects the
+control loop and sensor path almost perfectly. The RL agent does the opposite,
+spending 436 of its 457 misses on safety-critical tasks in order to protect
+background work. In a real vehicle or medical device that behaviour is not
+merely worse, it is dangerous.
+
+The cause is ε-greedy exploration. The agent is warm-started onto the
+Fixed-Priority policy, which is already near-optimal here, so every exploratory
+action can only move it away from the optimum — and under 102% load there is no
+slack to absorb a bad decision. Exploration that was *beneficial* under the old
+broken metric (where it mimicked round-robin fairness) is actively harmful once
+deadlines are counted correctly.
+
+### Where a learned scheduler could genuinely win
+
+Rate-monotonic orders tasks purely by period, so it is structurally unable to
+protect a *long-period but safety-critical* task from a *short-period but
+unimportant* one. This task set does not have that property — criticality and
+rate happen to correlate — which is precisely why RM is unbeatable on it. A
+workload where criticality is anti-correlated with period is the problem class
+where a learned policy has real headroom, and is the honest next experiment.
 
 ---
+
+## 🔧 Harness rebuild (v2) and post-submission corrections
+
+### Defects found and fixed
+
+**1. Execution time never occupied the CPU.** A running task blocked after
+exactly one tick regardless of the execution time drawn for it, so `rand_et()`
+fed only the hit/miss arithmetic. Nothing was ever preempted, no two tasks ever
+competed, and utilisation was irrelevant — which is why Fixed Priority and Round
+Robin returned byte-identical results across 20 different workload seeds. Fixed:
+a job now carries `remaining` ticks of work and holds the CPU until it completes
+or is preempted.
+
+**2. No preemption existed.** The scheduler now re-decides every tick, so a
+higher-priority release genuinely displaces the running task.
+
+**3. Deadline misses were counted per tick, not per job.** A task sitting past
+its deadline was charged a fresh miss every tick, so the metric measured
+accumulated lateness rather than deadline misses. This single choice is what made
+Round Robin appear unbeatable — it never starves anyone. Corrected to one miss
+per job, which is what real-time analysis means.
+
+**4. IDLE was a periodic task demanding 100% CPU** (period 1, WCET 1), which
+alone made every workload infeasible. It is now a true unscored background task.
+
+**5. The Bellman update bootstrapped a state off itself.** `_extract_state()` was
+called twice in the same tick, so `s'` always equalled `s`, collapsing the
+Q-update into a contextual bandit. Fixed by carrying each task's
+`(state, action)` across epochs.
+
+**6. The greedy policy collapsed to "give every task priority 0".** Uniform
+Q-values meant every `argmax` tied, and first-index tie-breaking returned action
+0 for every task — visible in `benchmark_results.csv` as priority rows of
+`0,0,0,0,0,0,4,0`. Fixed with random tie-breaking plus a warm start from the
+static priority assignment.
+
+**7. Unsigned underflow in the starvation penalty.** `tick_count - release_tick`
+wrapped to ~4×10⁹ whenever `release_tick` held a future value, firing the −0.5
+penalty almost unconditionally. Fixed with a guarded subtraction.
+
+### Priority inheritance is now actually tested
+
+The kernel shipped mutexes with priority inheritance, semaphores and message
+queues — and the benchmark never called any of them. The inheritance branch had
+never executed. `mutex_try_acquire()` / `mutex_release()` were added as
+non-blocking entry points usable from the tick-driven simulation, and the
+classic three-task inversion scenario (the Mars Pathfinder bug) is now measured:
+
+| Configuration | HIGH task blocked for |
+|---|---|
+| Without priority inheritance | **80 ticks** |
+| With priority inheritance | **20 ticks** |
+
+The 20 ticks is exactly the remaining critical section — bounded, as the protocol
+requires. The 80 is that same 20 plus MEDIUM's entire 60 ticks of unrelated work:
+the unbounded component, which grows with however much medium-priority work
+exists. The kernel's inheritance implementation is correct; nothing had ever
+demonstrated it.
 
 ## 🚀 Build & Run
 
